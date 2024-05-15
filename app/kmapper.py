@@ -244,6 +244,7 @@ class KeplerMapper(object):
             }
 
             if projection in projection_funcs.keys():
+                print("FINAL: ",type(X[0][0]))
                 X = projection_funcs[projection](
                     X, axis=1).reshape((X.shape[0], 1))
 

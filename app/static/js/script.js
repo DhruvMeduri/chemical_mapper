@@ -6,53 +6,85 @@ this.side_bar = new DataLoader([], []);
 $("#import_graph").click(function(){
     $("#graph_directory").click();
 })
+d3.select("#graph_directory")
+    .on("change",()=>{
 
-let folder = document.getElementById("graph_directory");
-folder.onchange=function(){
-    let files = folder.files;
-    that.mapper_folder_name = files[0].webkitRelativePath.split("/")[0];
-    let mapper_files = [];
-    for(let i=0;i<files.length;i+=1){
-        let filename_i = files[i].name;
-        if(filename_i.startsWith("mapper") && filename_i.endsWith(".json")){
-            mapper_files.push(filename_i)
-        }
-    }
-    console.log(mapper_files);
-    let mapper_list_container = document.getElementById("mapper-list-container-inner");
-    mapper_list_container.style.maxHeight = "450px";
-    // draw sliders
-    draw_mapper_param_sliders();
-    // draw dropdown meun
-    let fg = d3.select("#mapper_list_selection").selectAll("option").data(mapper_files);
-    fg.exit().remove();
-    fg = fg.enter().append("option").merge(fg)
-        .classed("select-items", true)
-        .html(d=>d);
-  }
-  d3.select("#draw-selected-mapper")
-    .on("click", ()=>{
-        let mapper_list_dropdown = document.getElementById("mapper_list_selection");
-        if(mapper_list_dropdown.options){
-            let mapper_filename = mapper_list_dropdown.options[mapper_list_dropdown.selectedIndex].text;
+        let files = $('#graph_directory')[0].files[0];
+        console.log("DEBUG: ",files.name)
+        filename = files.name;
+
             $.ajax({
                 type: "POST",
                 url: "/mapper_data_process",
-                data: that.mapper_folder_name+"/"+mapper_filename,
+                data: filename,
                 dataType:'text',
                 success: function (response) {
-                    response = JSON.parse(response);
-                    console.log(response)
-                    // that.graph = new Graph(response.mapper, {}, response.connected_components);
-                    that.graph = new Graph(response.mapper, response.col_keys, response.connected_components, response.categorical_cols);
-                    // that.side_bar = new DataLoader(response.columns, response.categorical_columns, response.other_columns);
+                    res = JSON.parse(response);
+                    console.log("CHECKL: ,",response)
+                    that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, that.side_bar.categorical_cols, that.side_bar.other_cols);
+                    //that.side_bar = new DataLoader(response.columns, response.categorical_columns, response.other_columns);
                 },
                 error: function (error) {
                     console.log("error",error);
+                    alert("Incorrect data format!");
                 }
             })
-        }
+            d3.select(".columns-group")
+                .style("max-height","1000px")
+                .style("visibility", "visible")
+
     })
+
+
+//let folder = document.getElementById("graph_directory");
+//folder.onchange=function(){
+//    console.log("GG")
+//    let files = folder.files;
+//    that.mapper_folder_name = files[0].webkitRelativePath.split("/")[0];
+//    let mapper_files = [];
+//    for(let i=0;i<files.length;i+=1){
+//        let filename_i = files[i].name;
+//        if(filename_i.startsWith("mapper") && filename_i.endsWith(".json")){
+//            mapper_files.push(filename_i)
+//        }
+//    }
+//    console.log(mapper_files);
+//    let mapper_list_container = document.getElementById("mapper-list-container-inner");
+//    mapper_list_container.style.maxHeight = "450px";
+    // draw sliders
+//    draw_mapper_param_sliders();
+    // draw dropdown meun
+//    let fg = d3.select("#mapper_list_selection").selectAll("option").data(mapper_files);
+//    fg.exit().remove();
+//    fg = fg.enter().append("option").merge(fg)
+//        .classed("select-items", true)
+//        .html(d=>d);
+//  }
+
+
+//  d3.select("#import_graph")
+//    .on("click", ()=>{
+//        let mapper_list_dropdown = document.getElementById("mapper_list_selection");
+//        if(mapper_list_dropdown.options){
+//            let mapper_filename = mapper_list_dropdown.options[mapper_list_dropdown.selectedIndex].text;
+//            $.ajax({
+//                type: "POST",
+//                url: "/mapper_data_process",
+//                data: that.mapper_folder_name+"/"+mapper_filename,
+//                dataType:'text',
+//                success: function (response) {
+//                    response = JSON.parse(response);
+//                    console.log(response)
+                    // that.graph = new Graph(response.mapper, {}, response.connected_components);
+//                    that.graph = new Graph(response.mapper, response.col_keys, response.connected_components, response.categorical_cols);
+                    // that.side_bar = new DataLoader(response.columns, response.categorical_columns, response.other_columns);
+//                },
+//                error: function (error) {
+//                    console.log("error",error);
+//                }
+//            })
+//        }
+//    })
 
 function draw_mapper_param_sliders(){
     console.log("draw sliders")

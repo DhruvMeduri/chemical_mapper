@@ -2,6 +2,7 @@ from flask import render_template,request, url_for, jsonify, redirect, Response,
 from app import app
 from app import APP_STATIC
 from app import APP_ROOT
+from types import SimpleNamespace
 import json
 import numpy as np
 import pandas as pd
@@ -135,23 +136,23 @@ def process_text_data():
 @app.route('/mapper_data_process', methods=['POST','GET'])
 def load_mapper_data():
     filename = request.get_data().decode('utf-8').splitlines()[0]
-    with open(APP_STATIC+"/uploads/"+filename) as f:
+    with open("./CLI_examples/"+filename) as f:
         mapper_graph = json.load(f)
     mapper_graph["links"] = mapper_graph["edges"]
     del mapper_graph["edges"]
-    # mapper_graph_new = _parse_result(mapper_graph, lens_dict={}, data_array=[], if_cli=True)
-    mapper_graph_new = _parse_enhanced_graph(graph, data_array=[], if_cli=True)
+
+    #obj.nodes = mapper_graph["nodes"]
+    #obj.links = mapper_graph["edges"]
+    mapper_graph_new = _parse_result(mapper_graph, lens_dict={}, data_array=[], if_cli=True)
+    print(mapper_graph_new)
+    #mapper_graph_new = _parse_enhanced_graph(obj, data_array=[], if_cli=True)
     connected_components = compute_cc(mapper_graph_new)
-    if 'numerical_col_keys' in mapper_graph.keys():
-        col_keys = mapper_graph['numerical_col_keys']
-    else:
-        col_keys = []
-    return jsonify(mapper=mapper_graph_new, connected_components=connected_components, categorical_cols=mapper_graph['categorical_cols'], col_keys=col_keys)
+
+    return jsonify(mapper=mapper_graph_new, connected_components=connected_components, categorical_cols=[], col_keys=[])
     # return jsonify(mapper=mapper_graph_new, connected_components=connected_components)
 
 @app.route('/mapper_loader', methods=['POST','GET'])
 def get_graph():
-    print("Is this happening!!")
     mapper_data = request.form.get('data')
     mapper_data = json.loads(mapper_data)
     selected_cols = mapper_data['cols']
@@ -325,7 +326,7 @@ def _parse_enhanced_graph(graph, data_array=[], if_cli=False):
                 })    
         else:
             if if_cli:
-                if "avgs" in graph['nodes'][key]:
+                if "avgs" in graph['nodes'].keys():
                     data['nodes'].append({
                         "id": str(i),
                         "id_orignal": key,
@@ -509,7 +510,6 @@ def _call_kmapper(data, col_names, interval, overlap, clustering_alg, clustering
             lens_dict[f] = lens_f
         lens = np.concatenate((lens[0], lens[1]), axis=1)
     # clusterer = sklearn.cluster.DBSCAN(eps=eps, min_samples=min_samples, metric='euclidean', n_jobs=8)
-    print("ULTIMATE: ",data_new)
     cover = Cover(n_cubes=interval, perc_overlap=overlap)
     if clustering_alg == "DBSCAN":
         graph = mapper.map_parallel(lens, data_new, clusterer=cluster.DBSCAN(eps=float(clustering_alg_params["eps"]), min_samples=int(clustering_alg_params["min_samples"])), cover=cover)
@@ -592,7 +592,7 @@ def _parse_result(graph, lens_dict={}, data_array=[], if_cli=False):
                         "id_orignal": key,
                         "size": len(graph['nodes'][key]),
                         "vertices": cluster,
-                        "categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
+                        #"categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
                         "avgs":graph['nodes'][key]["avgs"]
                         }),
                 else:
@@ -601,7 +601,7 @@ def _parse_result(graph, lens_dict={}, data_array=[], if_cli=False):
                         "id_orignal": key,
                         "size": len(graph['nodes'][key]),
                         "vertices": cluster,
-                        "categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
+                        #"categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
                         }),
             else:
                 data['nodes'].append({
@@ -650,7 +650,6 @@ def get_selected_data(selected_nodes):
     with open(APP_STATIC+"/uploads/cols_info.json") as f:
         cols_dict = json.load(f)
     cols = cols_dict['cols_numerical']
-    print(cols)
     with open(APP_STATIC+"/uploads/nodes_detail.json") as f:
         nodes_detail = json.load(f)
     if len(selected_nodes) > 0:
@@ -728,7 +727,6 @@ def send_structure():
    import base64
    selected_vertex_id = request.get_data().decode('utf-8')
    vertices = selected_vertex_id.split(',')
-   print('check: ',vertices)
    my_string = []
    df = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv") 
    for i in range(len(vertices)):
@@ -749,7 +747,7 @@ def for_KNN():
     print("EE: ",min_samples)
     from pynndescent import NNDescent
     df = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv")
-    activations = df.iloc[:, 0:31]
+    activations = df.iloc[:, 0:299]
     k = min_samples
     index = NNDescent(activations, metric='euclidean')
     out = index.query(activations, k=k)

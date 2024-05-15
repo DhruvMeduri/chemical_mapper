@@ -1,6 +1,7 @@
 import pandas as pd
 import argparse
 import os
+import re
 import app.views as MI  # MapperInteractive
 from app import kmapper as km
 from app import cover as km_cover
@@ -70,6 +71,7 @@ def graph_to_dict(g, **kwargs):
     return d
 
 
+
 def wrangle_csv(df):
     '''
     Check for:
@@ -77,7 +79,10 @@ def wrangle_csv(df):
     2. Non-numerical elements in numerical cols
     3. If cols are non-numerical, check if cols are categorical
     '''
-    newdf1 = df.to_numpy()[1:]
+    cols = list(df.columns.values)
+    cols = [col for col in cols if col!=""] # not include the col is there is no colname
+    #mat = [n.split(',') for n in ] # csv: if an element is empty, it will be "".
+    newdf1 = df.to_numpy()[0:]
     rows2delete = np.array([])
     cols2delete = []
 
@@ -98,14 +103,16 @@ def wrangle_csv(df):
     cols_numerical_idx = []
     cols_categorical_idx = []
     cols_others_idx = []
-    rows2delete = np.array([])
+    rows2delete = np.array([]) 
+    
+
+    #vmatch = np.vectorize(lambda x:bool(r1.match(x) or r2.match(x)))
     r1 = re.compile(r'^-?\d+(?:\.\d+)?$')
-    # scientific notation
-    r2 = re.compile(
-        r'[+\-]?[^A-Za-z]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)')
-    vmatch = np.vectorize(lambda x: bool(r1.match(x) or r2.match(x)))
+    r2 = re.compile(r'[+\-]?[^A-Za-z]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)') # scientific notation
+    vmatch = np.vectorize(lambda x:bool(r1.match(x) or r2.match(x)))
     for i in range(len(cols)):
         col = newdf2[:, i]
+        col = [str(i) for i in col]
         col_match = vmatch(col)
         # if more than 90% elements can be converted to float, keep the col, and delete rows that cannot be convert to float:
         if np.sum(col_match) >= 0.8*len(newdf1):
@@ -118,6 +125,7 @@ def wrangle_csv(df):
                 cols_categorical_idx.append(i)
             else:
                 cols_others_idx.append(i)
+    print("CHECK: ",cols_categorical_idx)
     newdf3 = newdf2[:, cols_numerical_idx+cols_categorical_idx+cols_others_idx]
     rows2delete = rows2delete.astype(int)
     newdf3 = np.delete(newdf3, rows2delete, axis=0)
@@ -126,8 +134,19 @@ def wrangle_csv(df):
     newdf3 = pd.DataFrame(newdf3)
     newdf3.columns = newdf3_cols
     # write the data frame
-    newdf3.to_csv(APP_STATIC+"/uploads/processed_data.csv", index=False)
-    return newdf3
+    newdf3.to_csv("./test/processed_data.csv", index=False)
+    # For only the numerical cols
+    newdf4 = np.array(newdf3)
+    newdf4_cols = [cols[idx] for idx in cols_numerical_idx]
+    newdf4 = np.delete(newdf4, cols_categorical_idx+cols_others_idx, axis=1)
+
+    newdf4 = pd.DataFrame(newdf4)
+    newdf4.columns = newdf4_cols
+    print(newdf4.shape)
+   
+
+
+    return newdf4
 
 
 def normalize_data(X, norm_type):
@@ -210,13 +229,16 @@ if __name__ == '__main__':
     elif not no_preprocess:
         df = wrangle_csv(df)
 
-    # Regardless, we want to save the data for bookkeeping
+    # Regardless, we want normalize_datato save the data for bookkeeping
     df.to_csv(join(output_dir, 'wrangled_data.csv'))
     df_np = df.to_numpy()
+    df_np = np.float64(df_np)#Very impoortant line
     df_np = normalize_data(df_np, norm_type=norm)
+    #print("CHECK: ",df_np)
     overlaps = extract_range(overlaps_str)
     intervals = extract_range(intervals_str)
-    filter_fn = get_filter_fn(df, filter_str, filter_params=None)
+    print(overlaps)
+    filter_fn = get_filter_fn(df_np, filter_str, filter_params=None)
 
     meta = {'data': fname, 'intervals': intervals_str,
             'overlaps': overlaps_str, 'filter': filter_str, 'normalization': norm}
@@ -255,5 +277,6 @@ if __name__ == '__main__':
     for overlap, interval in tqdm(itertools.product(overlaps, intervals)):
         g = graph_to_dict(mapper_wrapper(
             df_np, overlap, interval, filter_fn, clusterer, n_threads=threads, metric=metric, use_gpu=gpu))
+        print(g['edges'])
         with open(join(output_dir, 'mapper_' + str(fname) + '_' + str(interval) + '_' + str(overlap) + '.json'), 'w+') as fp:
             json.dump(g, fp)
