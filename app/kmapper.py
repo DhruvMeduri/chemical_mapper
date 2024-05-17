@@ -565,7 +565,7 @@ class KeplerMapper(object):
                 c = sklearn.base.clone(clusterer)
                 c.metric = 'precomputed'
                 c.n_jobs = n_threads
-
+                print(use_gpu)
                 if use_gpu and metric == 'euclidean' and cuda_avail and (out_of_memory == -1 or fit_data.shape[0] < out_of_memory):
                     try:
                         dist_mat = torch_cdist(fit_data)

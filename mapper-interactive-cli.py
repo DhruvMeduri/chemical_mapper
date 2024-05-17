@@ -176,7 +176,7 @@ if __name__ == '__main__':
     parser.add_argument('-output', type=str,
                         help='Output Directory. Defaults to "./graph/"', default='./graph/')
     parser.add_argument('--no-preprocess', action='store_true')
-    parser.add_argument('--threads', type=int, default=4,
+    parser.add_argument('--threads', type=int, default=16,
                         help='Number of threads to allocate')
 
     parser.add_argument('--clusterer', type=str, required=False,
@@ -276,7 +276,6 @@ if __name__ == '__main__':
 
     for overlap, interval in tqdm(itertools.product(overlaps, intervals)):
         g = graph_to_dict(mapper_wrapper(
-            df_np, overlap, interval, filter_fn, clusterer, n_threads=threads, metric=metric, use_gpu=gpu))
-        print(g['edges'])
+            df_np, overlap, interval, filter_fn, clusterer, n_threads=threads, metric=metric, use_gpu=True))
         with open(join(output_dir, 'mapper_' + str(fname) + '_' + str(interval) + '_' + str(overlap) + '.json'), 'w+') as fp:
             json.dump(g, fp)
