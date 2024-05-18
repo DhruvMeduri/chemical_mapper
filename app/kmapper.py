@@ -644,8 +644,9 @@ class KeplerMapper(object):
         if remove_duplicate_nodes:
             nodes = self._remove_duplicate_nodes(nodes)
 
+        print("COMPUTING LINKS")
         links, simplices = nerve.compute(nodes)
-
+ 
         graph["nodes"] = nodes
         graph["links"] = links
         graph["simplices"] = simplices
@@ -657,7 +658,7 @@ class KeplerMapper(object):
             "scaler": str(self.scaler),
         }
         graph["meta_nodes"] = meta
-
+        print("DONE")
         # Reporting
         if self.verbose > 0:
             self._summary(graph, str(datetime.now() - start))

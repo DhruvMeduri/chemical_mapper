@@ -59,6 +59,7 @@ def mapper_wrapper(X, overlap, intervals, filter_fn, clusterer, **mapper_args):
 
 
 def graph_to_dict(g, **kwargs):
+    print("WORKING ON DICT")
     d = {}
     d['nodes'] = {}
     d['edges'] = {}
@@ -68,6 +69,7 @@ def graph_to_dict(g, **kwargs):
         d['edges'][k] = g['links'][k]
     for k in kwargs.keys():
         d[k] = kwargs[k]
+    print("DONE")
     return d
 
 
