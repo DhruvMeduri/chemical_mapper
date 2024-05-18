@@ -384,7 +384,7 @@ class KeplerMapper(object):
             precomputed=False,
             remove_duplicate_nodes=False,
             metric='euclidean',
-            use_gpu=False,
+            use_gpu=True,
             # These arguments are all deprecated
             overlap_perc=None,
             nr_cubes=None,
@@ -553,7 +553,7 @@ class KeplerMapper(object):
                 d = d.cpu().numpy()
                 return d
 
-        def cluster_helper(hypercube, cube_idx):
+        def cluster_helper(hypercube, cube_idx, out_of_memory):
             if hypercube.shape[0] >= min_cluster_samples:
                 ids = [int(nn) for nn in hypercube[:, 0]]
                 X_cube = X[ids]
@@ -565,7 +565,7 @@ class KeplerMapper(object):
                 c = sklearn.base.clone(clusterer)
                 c.metric = 'precomputed'
                 c.n_jobs = n_threads
-                print(use_gpu)
+                
                 if use_gpu and metric == 'euclidean' and cuda_avail and (out_of_memory == -1 or fit_data.shape[0] < out_of_memory):
                     try:
                         dist_mat = torch_cdist(fit_data)
@@ -605,7 +605,7 @@ class KeplerMapper(object):
 
                 # cluster_predictions = cluster_predictions_precomputed[i]
                 clustering_start = datetime.now()
-                cluster_predictions = cluster_helper(hypercube, i)
+                cluster_predictions = cluster_helper(hypercube, i, out_of_memory)
 
                 if self.verbose > 1:
                     print(

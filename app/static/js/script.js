@@ -21,7 +21,7 @@ d3.select("#graph_directory")
                 success: function (response) {
                     res = JSON.parse(response);
                     console.log("CHECKL: ,",response)
-                    that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, that.side_bar.categorical_cols, that.side_bar.other_cols);
+                    that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, res.categorical_cols, that.side_bar.other_cols);
                     //that.side_bar = new DataLoader(response.columns, response.categorical_columns, response.other_columns);
                 },
                 error: function (error) {

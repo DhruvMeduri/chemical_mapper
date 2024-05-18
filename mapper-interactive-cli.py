@@ -274,8 +274,12 @@ if __name__ == '__main__':
     with open(join(output_dir, 'metadata.json'), 'w+') as fp:
         json.dump(meta, fp)
 
+
+    count = 0
     for overlap, interval in tqdm(itertools.product(overlaps, intervals)):
         g = graph_to_dict(mapper_wrapper(
             df_np, overlap, interval, filter_fn, clusterer, n_threads=threads, metric=metric, use_gpu=True))
         with open(join(output_dir, 'mapper_' + str(fname) + '_' + str(interval) + '_' + str(overlap) + '.json'), 'w+') as fp:
             json.dump(g, fp)
+        print(count)
+        count = count + 1

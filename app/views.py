@@ -4,6 +4,8 @@ from app import APP_STATIC
 from app import APP_ROOT
 from types import SimpleNamespace
 import json
+import itertools
+import csv
 import numpy as np
 import pandas as pd
 import os
@@ -132,6 +134,27 @@ def process_text_data():
 #     with open(APP_STATIC+"/uploads/cols_info.json", 'w') as f:
 #         f.write(json.dumps(cols_dict, indent=4))
 #     return jsonify(columns=cols_numerical, categorical_columns=cols_categorical, other_columns=cols_others)
+def for_label_scaffold(filename,array):
+
+    categorical = {"label":{},"scaffold":{}}
+    for i in array:
+        with open(filename) as f:
+            whole = next(itertools.islice(csv.reader(f), i+1, None))
+        label = whole[-3]
+        scaffold = whole[-1]
+        if label not in categorical["label"]:
+            categorical["label"][label] = 1
+        else:
+            categorical["label"][label] = categorical["label"][label] + 1
+        
+        if scaffold not in categorical["scaffold"]:
+            categorical["scaffold"][scaffold] = 1
+        else:
+            categorical["scaffold"][scaffold] = categorical["scaffold"][scaffold] + 1
+            
+    return categorical
+            
+
 
 @app.route('/mapper_data_process', methods=['POST','GET'])
 def load_mapper_data():
@@ -144,11 +167,12 @@ def load_mapper_data():
     #obj.nodes = mapper_graph["nodes"]
     #obj.links = mapper_graph["edges"]
     mapper_graph_new = _parse_result(mapper_graph, lens_dict={}, data_array=[], if_cli=True)
-    print(mapper_graph_new)
+    print("DEBUG: ",mapper_graph_new)
+
     #mapper_graph_new = _parse_enhanced_graph(obj, data_array=[], if_cli=True)
     connected_components = compute_cc(mapper_graph_new)
 
-    return jsonify(mapper=mapper_graph_new, connected_components=connected_components, categorical_cols=[], col_keys=[])
+    return jsonify(mapper=mapper_graph_new, connected_components=connected_components,categorical_cols = ['label','scaffold'])
     # return jsonify(mapper=mapper_graph_new, connected_components=connected_components)
 
 @app.route('/mapper_loader', methods=['POST','GET'])
@@ -201,6 +225,7 @@ def get_graph():
             for col in categorical_cols:
                 node['categorical_cols_summary'][col] = data_categorical_i[col].value_counts().to_dict()
     connected_components = compute_cc(mapper_result)
+    print(mapper_result)
     return jsonify(mapper=mapper_result, connected_components=connected_components)
 
 @app.route('/enhanced_mapper_loader', methods=['POST','GET'])
@@ -592,16 +617,17 @@ def _parse_result(graph, lens_dict={}, data_array=[], if_cli=False):
                         "id_orignal": key,
                         "size": len(graph['nodes'][key]),
                         "vertices": cluster,
-                        #"categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
+                        "categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
                         "avgs":graph['nodes'][key]["avgs"]
                         }),
                 else:
+                    print("cc")
                     data['nodes'].append({
                         "id": str(i),
                         "id_orignal": key,
                         "size": len(graph['nodes'][key]),
                         "vertices": cluster,
-                        #"categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
+                        "categorical_cols_summary":for_label_scaffold(APP_STATIC+'/uploads/processed_data.csv',cluster)
                         }),
             else:
                 data['nodes'].append({
