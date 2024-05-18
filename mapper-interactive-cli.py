@@ -230,14 +230,13 @@ if __name__ == '__main__':
         df = wrangle_csv(df)
 
     # Regardless, we want normalize_datato save the data for bookkeeping
-    df.to_csv(join(output_dir, 'wrangled_data.csv'))
+    #df.to_csv(join(output_dir, 'wrangled_data.csv'))
     df_np = df.to_numpy()
-    df_np = np.float64(df_np)#Very impoortant line
+    df_np = np.float16(df_np)#Very impoortant line
     df_np = normalize_data(df_np, norm_type=norm)
     #print("CHECK: ",df_np)
     overlaps = extract_range(overlaps_str)
     intervals = extract_range(intervals_str)
-    print(overlaps)
     filter_fn = get_filter_fn(df_np, filter_str, filter_params=None)
 
     meta = {'data': fname, 'intervals': intervals_str,
@@ -275,11 +274,9 @@ if __name__ == '__main__':
         json.dump(meta, fp)
 
 
-    count = 0
+
     for overlap, interval in tqdm(itertools.product(overlaps, intervals)):
         g = graph_to_dict(mapper_wrapper(
             df_np, overlap, interval, filter_fn, clusterer, n_threads=threads, metric=metric, use_gpu=True))
         with open(join(output_dir, 'mapper_' + str(fname) + '_' + str(interval) + '_' + str(overlap) + '.json'), 'w+') as fp:
             json.dump(g, fp)
-        print(count)
-        count = count + 1
