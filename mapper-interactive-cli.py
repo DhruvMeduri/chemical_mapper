@@ -234,7 +234,7 @@ if __name__ == '__main__':
     # Regardless, we want normalize_datato save the data for bookkeeping
     #df.to_csv(join(output_dir, 'wrangled_data.csv'))
     df_np = df.to_numpy()
-    df_np = np.float16(df_np)#Very impoortant line
+    df_np = np.float32(df_np)#Very impoortant line
     df_np = normalize_data(df_np, norm_type=norm)
     #print("CHECK: ",df_np)
     overlaps = extract_range(overlaps_str)
