@@ -1,1 +1,1 @@
-{"data": "check.csv", "intervals": "10:10:1", "overlaps": "50:50:1", "filter": "l2norm", "normalization": null, "Clustering_method": "dbscan", "DBSCAN_eps": 7.0, "DBSCAN_min_samples": 1}
+{"data": "check.csv", "intervals": "100:100:1", "overlaps": "50:50:1", "filter": "l2norm", "normalization": null, "Clustering_method": "dbscan", "DBSCAN_eps": 7.0, "DBSCAN_min_samples": 1}

@@ -645,6 +645,8 @@ class KeplerMapper(object):
             nodes = self._remove_duplicate_nodes(nodes)
 
         print("COMPUTING LINKS")
+        print(len(nodes))
+
         links, simplices = nerve.compute(nodes)
  
         graph["nodes"] = nodes
