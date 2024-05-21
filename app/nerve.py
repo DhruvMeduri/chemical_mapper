@@ -63,7 +63,6 @@ class GraphNerve(Nerve):
         cube = 0
         count = 0
         for candidate in candidates:
-            print(candidate)
             temp = int(candidate.split('_')[0].replace('cube',''))
             if temp>cube:
                 cube_markers[cube] = count
@@ -97,6 +96,7 @@ class GraphNerve(Nerve):
                         >= self.min_intersection
                 ):
                             result[candidates[r]].append(candidates[c])
+                            print([candidates[r],candidates[c]])
                 
                 for r in range(cube_markers[i-2],cube_markers[i-1]):
                     for c in range(cube_markers[i-1],cube_markers[i]):
