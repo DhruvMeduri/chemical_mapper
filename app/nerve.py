@@ -54,32 +54,72 @@ class GraphNerve(Nerve):
 
         result = defaultdict(list)
 
-        def check_intersection(candidate,nodes,min):
-            if (
-                len(set(nodes[candidate[0]]).intersection(set(nodes[candidate[1]])))
-                >= min
-            ):
-                result[candidate[0]].append(candidate[1])
 
              
         # Create links when clusters from different hypercubes have members with the same sample id.
-        candidates = itertools.combinations(nodes.keys(), 2)
-
+        candidates = nodes.keys()
+        print("COMPUTING CUBE MARKERS")
+        cube_markers = {-1:0}
+        cube = 0
+        count = 0
         for candidate in candidates:
-            # if there are non-unique members in the union
-            cube1 = int(candidate[0].split('_')[0].replace('cube',''))
-            cube2 = int(candidate[1].split('_')[0].replace('cube',''))
-            if cube1 - cube2 == 1 or cube2-cube1 == 1:
-                start = time.time()
-                if (
-                    len(set(nodes[candidate[0]]).intersection(set(nodes[candidate[1]])))
-                    >= self.min_intersection
-                ):
-                    result[candidate[0]].append(candidate[1])
-                end = time.time()
-                print(end - start)
-                print(candidate)
+            print(candidate)
+            temp = int(candidate.split('_')[0].replace('cube',''))
+            if temp>cube:
+                cube_markers[cube] = count
+                cube = cube + 1 
+            
+            count = count + 1
+        cube_markers[cube] = count
 
+        print(len(candidates))
+        print("DONE")    
+        print(cube_markers)
+        candidates = list(candidates)
+ 
+        print("COMPUTING LINKS")
+        for i in range(len(cube_markers)-2):
+            # if there are non-unique members in the union
+            if i == 0:
+                for r in range(cube_markers[0]):
+                    for c in range(cube_markers[0],cube_markers[1]):
+                        if (
+                        len(set(nodes[candidates[r]]).intersection(set(nodes[candidates[c]])))
+                        >= self.min_intersection
+                ):
+                            result[candidates[r]].append(candidates[c])
+                            print([candidates[r],candidates[c]])
+            else:
+                for r in range(cube_markers[i-1],cube_markers[i]):
+                    for c in range(cube_markers[i],cube_markers[i+1]):
+                        if (
+                        len(set(nodes[candidates[r]]).intersection(set(nodes[candidates[c]])))
+                        >= self.min_intersection
+                ):
+                            result[candidates[r]].append(candidates[c])
+                
+                for r in range(cube_markers[i-2],cube_markers[i-1]):
+                    for c in range(cube_markers[i-1],cube_markers[i]):
+                        if (
+                        len(set(nodes[candidates[r]]).intersection(set(nodes[candidates[c]])))
+                        >= self.min_intersection
+                ):
+                            result[candidates[r]].append(candidates[c])
+                            print([candidates[r],candidates[c]])
+
+            #cube1 = int(candidate[0].split('_')[0].replace('cube',''))
+            #cube2 = int(candidate[1].split('_')[0].replace('cube',''))
+            #if cube1 - cube2 == 1 or cube2-cube1 == 1:
+            #    start = time.time()
+            #    if (
+            #        len(set(nodes[candidate[0]]).intersection(set(nodes[candidate[1]])))
+            #        >= self.min_intersection
+            #    ):
+            #        result[candidate[0]].append(candidate[1])
+            #    end = time.time()
+            #    print(end - start)
+            #    print(candidate)
+        print("DONE")
         edges = [[x, end] for x in result for end in result[x]]
         simplices = [[n] for n in nodes] + edges
         return result, simplices
