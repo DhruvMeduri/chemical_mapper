@@ -278,7 +278,9 @@ if __name__ == '__main__':
 
 
     for overlap, interval in tqdm(itertools.product(overlaps, intervals)):
+
         g = graph_to_dict(mapper_wrapper(
             df_np, overlap, interval, filter_fn, clusterer, n_threads=threads, metric=metric, use_gpu=True))
-        with open(join(output_dir, 'mapper_' + str(fname).replace(".csv","") + '_' + str(interval) + '_' + str(overlap) + '.json'), 'w+') as fp:
+        with open(join(output_dir, 'mapper_' + str(fname).replace(".csv","") + '_' + str(interval) + '_' + str(overlap) + '.json'), 'w') as fp:
             json.dump(g, fp)
+        print(str(fname))
