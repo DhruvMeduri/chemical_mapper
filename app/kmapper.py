@@ -645,7 +645,7 @@ class KeplerMapper(object):
             nodes = self._remove_duplicate_nodes(nodes)
 
         print("COMPUTING LINKS")
-        print(len(nodes))
+        print(nodes)
 
         links, simplices = nerve.compute(nodes)
  
