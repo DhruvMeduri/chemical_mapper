@@ -1,5 +1,7 @@
 import itertools
 from collections import defaultdict
+from joblib import Parallel,delayed 
+import multiprocessing
 import time
 __all__ = ["GraphNerve"]
 
@@ -52,19 +54,32 @@ class GraphNerve(Nerve):
 
         result = defaultdict(list)
 
-        # Create links when clusters from different hypercubes have members with the same sample id.
-        candidates = itertools.combinations(nodes.keys(), 2)
-        for candidate in candidates:
-            # if there are non-unique members in the union
-            print(candidate)
-            start = time.time()
+        def check_intersection(candidate,nodes,min):
             if (
                 len(set(nodes[candidate[0]]).intersection(set(nodes[candidate[1]])))
-                >= self.min_intersection
+                >= min
             ):
                 result[candidate[0]].append(candidate[1])
-            end = time.time()
-            print(end-start)
+
+             
+        # Create links when clusters from different hypercubes have members with the same sample id.
+        candidates = itertools.combinations(nodes.keys(), 2)
+
+        for candidate in candidates:
+            # if there are non-unique members in the union
+            cube1 = int(candidate[0].split('_')[0].replace('cube',''))
+            cube2 = int(candidate[1].split('_')[0].replace('cube',''))
+            if cube1 - cube2 == 1 or cube2-cube1 == 1:
+                start = time.time()
+                if (
+                    len(set(nodes[candidate[0]]).intersection(set(nodes[candidate[1]])))
+                    >= self.min_intersection
+                ):
+                    result[candidate[0]].append(candidate[1])
+                end = time.time()
+                print(end - start)
+                print(candidate)
+
         edges = [[x, end] for x in result for end in result[x]]
         simplices = [[n] for n in nodes] + edges
         return result, simplices
