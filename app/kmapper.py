@@ -605,7 +605,7 @@ class KeplerMapper(object):
                 # cluster_predictions = cluster_predictions_precomputed[i]
                 clustering_start = datetime.now()
                 cluster_predictions = cluster_helper(hypercube, i, out_of_memory)
-
+                print(i)
                 if self.verbose > 1:
                     print(
                         f'[{i}]: Completed clustering in {datetime.now() - clustering_start} for num_points={hypercube.shape[0]}')

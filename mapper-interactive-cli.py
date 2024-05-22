@@ -153,7 +153,6 @@ def wrangle_csv(df):
 
 # Only for the chemical mapper
 def for_label_scaffold(filename,array):
-    print(len(array))
     categorical = {"label":{},"scaffold":{}}
     for i in array:
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
@@ -167,8 +166,7 @@ def for_label_scaffold(filename,array):
         if scaffold not in categorical["scaffold"]:
             categorical["scaffold"][scaffold] = 1
         else:
-            categorical["scaffold"][scaffold] = categorical["scaffold"][scaffold] + 1
-    print("CHECK")    
+            categorical["scaffold"][scaffold] = categorical["scaffold"][scaffold] + 1   
     return categorical
 
 def compute_cc(graph): 
@@ -264,13 +262,13 @@ if __name__ == '__main__':
     df = pd.read_csv(fname)
     if preprocess_only:
         df = wrangle_csv(df)
-        df.to_csv(join(output_dir, 'wrangled_data.csv'))
+        df.to_csv(join(output_dir, 'wrangled_data.csv'),index = False)
         exit()
     elif not no_preprocess:
         df = wrangle_csv(df)
 
     # Regardless, we want normalize_datato save the data for bookkeeping
-    df.to_csv(join(output_dir, 'wrangled_data.csv'))
+    df.to_csv(join(output_dir, 'wrangled_data.csv'),index=False)
     df_np = df.to_numpy()
     df_np = np.float32(df_np)#Very impoortant line
     df_np = normalize_data(df_np, norm_type=norm)
