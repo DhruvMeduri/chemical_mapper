@@ -602,7 +602,6 @@ class KeplerMapper(object):
             if hypercube.shape[0] >= min_cluster_samples:
                 # Cluster the data point(s) in the cube, skipping the id-column
                 # Note that we apply clustering on the inverse image (original data samples) that fall inside the cube.
-                print(i)
                 # cluster_predictions = cluster_predictions_precomputed[i]
                 clustering_start = datetime.now()
                 cluster_predictions = cluster_helper(hypercube, i, out_of_memory)

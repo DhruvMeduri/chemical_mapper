@@ -73,7 +73,7 @@ class GraphNerve(Nerve):
 
         print(len(candidates))
         print("DONE")    
-        print(cube_markers)
+        #print(cube_markers)
         candidates = list(candidates)
  
         print("COMPUTING LINKS")
@@ -87,7 +87,6 @@ class GraphNerve(Nerve):
                         >= self.min_intersection
                 ):
                             result[candidates[r]].append(candidates[c])
-                            print([candidates[r],candidates[c]])
             else:
                 for r in range(cube_markers[i-1],cube_markers[i]):
                     for c in range(cube_markers[i],cube_markers[i+1]):
@@ -96,7 +95,7 @@ class GraphNerve(Nerve):
                         >= self.min_intersection
                 ):
                             result[candidates[r]].append(candidates[c])
-                            print([candidates[r],candidates[c]])
+                            #print([candidates[r],candidates[c]])
                 
                 for r in range(cube_markers[i-2],cube_markers[i-1]):
                     for c in range(cube_markers[i-1],cube_markers[i]):
@@ -105,7 +104,7 @@ class GraphNerve(Nerve):
                         >= self.min_intersection
                 ):
                             result[candidates[r]].append(candidates[c])
-                            print([candidates[r],candidates[c]])
+                            #print([candidates[r],candidates[c]])
 
             #cube1 = int(candidate[0].split('_')[0].replace('cube',''))
             #cube2 = int(candidate[1].split('_')[0].replace('cube',''))

@@ -1,7 +1,9 @@
 import pandas as pd
 import argparse
 import os
+import linecache
 import re
+import networkx as nx
 import app.views as MI  # MapperInteractive
 from app import kmapper as km
 from app import cover as km_cover
@@ -12,7 +14,7 @@ import numpy as np
 from os.path import join
 from tqdm import tqdm
 from sklearn.preprocessing import MinMaxScaler, normalize
-
+import csv
 
 def mkdir(f):
     if not os.path.exists(f):
@@ -123,11 +125,10 @@ def wrangle_csv(df):
                 (rows2delete, np.where(col_match == False)[0]))
         else:
             ### check if categorical cols###
-            if len(np.unique(col)) <= 200:  # if less than 10 different values: categorical
+            if len(np.unique(col)) <= 40:  # if less than 10 different values: categorical
                 cols_categorical_idx.append(i)
             else:
                 cols_others_idx.append(i)
-    print("CHECK: ",cols_categorical_idx)
     newdf3 = newdf2[:, cols_numerical_idx+cols_categorical_idx+cols_others_idx]
     rows2delete = rows2delete.astype(int)
     newdf3 = np.delete(newdf3, rows2delete, axis=0)
@@ -136,7 +137,7 @@ def wrangle_csv(df):
     newdf3 = pd.DataFrame(newdf3)
     newdf3.columns = newdf3_cols
     # write the data frame
-    newdf3.to_csv("./test/processed_data.csv", index=False)
+    newdf3.to_csv(output_dir+"/processed_data.csv", index=False)
     # For only the numerical cols
     newdf4 = np.array(newdf3)
     newdf4_cols = [cols[idx] for idx in cols_numerical_idx]
@@ -150,6 +151,43 @@ def wrangle_csv(df):
 
     return newdf4
 
+# Only for the chemical mapper
+def for_label_scaffold(filename,array):
+    print(len(array))
+    categorical = {"label":{},"scaffold":{}}
+    for i in array:
+        line = linecache.getline(output_dir+'/processed_data.csv', i+2)
+        label = line.split(',')[-3]
+        scaffold = line.split(',')[-2]
+        if label not in categorical["label"]:
+            categorical["label"][label] = 1
+        else:
+            categorical["label"][label] = categorical["label"][label] + 1
+        
+        if scaffold not in categorical["scaffold"]:
+            categorical["scaffold"][scaffold] = 1
+        else:
+            categorical["scaffold"][scaffold] = categorical["scaffold"][scaffold] + 1
+    print("CHECK")    
+    return categorical
+
+def compute_cc(graph): 
+    '''
+    Compute connected components for the mapper graph
+    '''
+    G = nx.Graph()
+    for node in graph['nodes']:
+        nodeId = int(node['id'])-1
+        G.add_node(nodeId)
+    for edge in graph['links']:
+        sourceId = int(edge['source'])-1
+        targetId = int(edge['target'])-1
+        G.add_edge(sourceId, targetId)
+    cc = nx.connected_components(G)
+    cc_list = []
+    for c in cc:
+        cc_list.append(list(c))
+    return cc_list
 
 def normalize_data(X, norm_type):
     if norm_type == "none" or norm_type is None:
@@ -232,7 +270,7 @@ if __name__ == '__main__':
         df = wrangle_csv(df)
 
     # Regardless, we want normalize_datato save the data for bookkeeping
-    #df.to_csv(join(output_dir, 'wrangled_data.csv'))
+    df.to_csv(join(output_dir, 'wrangled_data.csv'))
     df_np = df.to_numpy()
     df_np = np.float32(df_np)#Very impoortant line
     df_np = normalize_data(df_np, norm_type=norm)
@@ -281,6 +319,40 @@ if __name__ == '__main__':
 
         g = graph_to_dict(mapper_wrapper(
             df_np, overlap, interval, filter_fn, clusterer, n_threads=threads, metric=metric, use_gpu=True))
-        with open(join(output_dir, 'mapper_' + str(fname).replace(".csv","") + '_' + str(interval) + '_' + str(overlap) + '.json'), 'w') as fp:
-            json.dump(g, fp)
-        print(str(fname))
+
+        print("FOR VISUALIZATION") 
+        g["links"] = g["edges"]
+        del g["edges"]
+        data = {"nodes": [], "links": []}
+        node_keys = g['nodes'].keys()
+        i =1
+        name2id = {}
+        for key in node_keys:
+            cluster = g['nodes'][key]
+            name2id[key] = i
+            data['nodes'].append({
+            "id": str(i),
+            "id_orignal": key,
+            "size": len(g['nodes'][key]),
+            "vertices": cluster,
+            "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster)
+                        })
+            i = i+1
+        
+    # links
+    links = set()
+    for link_from in g['links'].keys():
+        for link_to in g['links'][link_from]:
+            from_id = name2id[link_from]
+            to_id = name2id[link_to]
+            left_id = min(from_id, to_id)
+            right_id = max(from_id, to_id)
+            links.add((left_id, right_id))
+    for link in links:
+        data['links'].append({"source": link[0], "target": link[1]})
+        
+    connected_components = compute_cc(data)
+    to_dump = {'mapper':data,'connected_components':connected_components,'categorical_cols':['label','scaffold']}
+    with open(output_dir+'/final.json', 'w') as fp:
+            json.dump(to_dump, fp)
+    print("COMPLETE")

@@ -303,9 +303,8 @@
     ],
     "cols_categorical": [
         "Label",
+        "Structure",
         "Scaffold"
     ],
-    "cols_others": [
-        "Structure"
-    ]
+    "cols_others": []
 }

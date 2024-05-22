@@ -141,7 +141,7 @@ def for_label_scaffold(filename,array):
         with open(filename) as f:
             whole = next(itertools.islice(csv.reader(f), i+1, None))
         label = whole[-3]
-        scaffold = whole[-1]
+        scaffold = whole[-2]
         if label not in categorical["label"]:
             categorical["label"][label] = 1
         else:
@@ -159,20 +159,21 @@ def for_label_scaffold(filename,array):
 @app.route('/mapper_data_process', methods=['POST','GET'])
 def load_mapper_data():
     filename = request.get_data().decode('utf-8').splitlines()[0]
-    with open("./CLI_examples/"+filename) as f:
+    with open(filename) as f:
         mapper_graph = json.load(f)
-    mapper_graph["links"] = mapper_graph["edges"]
-    del mapper_graph["edges"]
+    #mapper_graph["links"] = mapper_graph["edges"]
+    #del mapper_graph["edges"]
 
     #obj.nodes = mapper_graph["nodes"]
     #obj.links = mapper_graph["edges"]
-    mapper_graph_new = _parse_result(mapper_graph, lens_dict={}, data_array=[], if_cli=True)
-    print("DEBUG: ",mapper_graph_new)
+    #mapper_graph_new = _parse_result(mapper_graph, lens_dict={}, data_array=[], if_cli=True)
+    #print("DEBUG: ",mapper_graph_new)
 
     #mapper_graph_new = _parse_enhanced_graph(obj, data_array=[], if_cli=True)
-    connected_components = compute_cc(mapper_graph_new)
+    #connected_components = compute_cc(mapper_graph_new)
 
-    return jsonify(mapper=mapper_graph_new, connected_components=connected_components,categorical_cols = ['label','scaffold'])
+    #return jsonify(mapper=mapper_graph_new, connected_components=connected_components,categorical_cols = ['label','scaffold'])
+    return jsonify(mapper_graph)
     # return jsonify(mapper=mapper_graph_new, connected_components=connected_components)
 
 @app.route('/mapper_loader', methods=['POST','GET'])

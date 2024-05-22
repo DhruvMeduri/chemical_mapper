@@ -9,9 +9,16 @@ $("#import_graph").click(function(){
 d3.select("#graph_directory")
     .on("change",()=>{
 
-        let files = $('#graph_directory')[0].files[0];
-        console.log("DEBUG: ",files.name)
-        filename = files.name;
+        let files = $('#graph_directory')[0].files;
+        for(let i = 0; i<files.length;i++)
+        {
+            if(files[i].webkitRelativePath.includes('final'))
+            {
+                filename = files[i].webkitRelativePath;
+            }
+        }
+        console.log("DEBUG: ",filename)
+
 
             $.ajax({
                 type: "POST",
@@ -20,7 +27,6 @@ d3.select("#graph_directory")
                 dataType:'text',
                 success: function (response) {
                     res = JSON.parse(response);
-                    console.log("CHECKL: ,",response)
                     that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, res.categorical_cols, that.side_bar.other_cols);
                     //that.side_bar = new DataLoader(response.columns, response.categorical_columns, response.other_columns);
                 },
