@@ -579,7 +579,7 @@ class KeplerMapper(object):
 
                 # if self.verbose > 1:
                 #     print(f'Computed distance matrix of shape{dist_mat.shape} in {datetime.now() - start}')
-                print(dist_mat.shape())
+                print(dist_mat.shape)
                 cluster_predictions = c.fit_predict(dist_mat)
 
                 # if self.verbose > 1:
