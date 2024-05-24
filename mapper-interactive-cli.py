@@ -268,7 +268,7 @@ if __name__ == '__main__':
         df = wrangle_csv(df)
 
     # Regardless, we want normalize_datato save the data for bookkeeping
-    #df.to_csv(join(output_dir, 'wrangled_data.csv'),index=False)
+    df.to_csv(join(output_dir, 'wrangled_data.csv'),index=False)
     df_np = df.to_numpy()
     df_np = np.float32(df_np)#Very impoortant line
     df_np = normalize_data(df_np, norm_type=norm)
@@ -332,7 +332,7 @@ if __name__ == '__main__':
             "id": str(i),
             "id_orignal": key,
             "size": len(g['nodes'][key]),
-            "vertices": cluster,
+            "vertices": [cluster[1],cluster[-1]],
             "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster)
                         })
             i = i+1

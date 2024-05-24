@@ -3,6 +3,7 @@ from app import app
 from app import APP_STATIC
 from app import APP_ROOT
 from types import SimpleNamespace
+import linecache
 import json
 import itertools
 import csv
@@ -755,11 +756,14 @@ def send_structure():
    selected_vertex_id = request.get_data().decode('utf-8')
    vertices = selected_vertex_id.split(',')
    my_string = []
-   df = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv") 
+   #df = pd.read_csv("CLI_examples/processed_data.csv") 
    for i in range(len(vertices)):
        vertices[i] = int(vertices[i])
+       print(vertices)
+       line = linecache.getline("./CLI_examples/processed_data.csv", vertices[i]+2)
+       structure = line.split(',')[-1]
    #print(df.iloc[0]['Structure'])
-       structure = df.iloc[vertices[i]]['Structure']
+       #structure = df.iloc[vertices[i]]['Structure']
        print(structure)
        draw_structure.draw_chem(structure)
        with open("./app/sample.png", "rb") as img_file:

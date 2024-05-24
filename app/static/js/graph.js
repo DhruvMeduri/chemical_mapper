@@ -637,6 +637,7 @@ class Graph{
                             this.highlight_selectable((nId+1).toString());
                         })
                     }
+                    chem_draw(d.id,this.nodes);
                 }
                 else if(this.if_select_path){
                     if(this.selected_nodes.length === 0){
@@ -647,6 +648,7 @@ class Graph{
                         this.highlight_path(path, this.path_start_id, d.id);
                     }
                 }
+
             })
             .on("mouseout", ()=>{
                 if(this.if_select_node || this.if_select_cluster || this.if_select_path){

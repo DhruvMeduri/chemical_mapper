@@ -1,1 +1,0 @@
-{"data": "./CLI_examples/wrangled_data.csv", "intervals": "50:50:1", "overlaps": "50:50:1", "filter": "l2norm", "normalization": null, "Clustering_method": "dbscan", "DBSCAN_eps": 7.0, "DBSCAN_min_samples": 1}
