@@ -157,7 +157,7 @@ def for_label_scaffold(filename,array):
     for i in array:
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
         label = line.split(',')[-3]
-        scaffold = line.split(',')[-1]
+        scaffold = line.split(',')[-2]
         if label not in categorical["label"]:
             categorical["label"][label] = 1
         else:
@@ -332,7 +332,7 @@ if __name__ == '__main__':
             "id": str(i),
             "id_orignal": key,
             "size": len(g['nodes'][key]),
-            "vertices": [cluster[1],cluster[-1]],
+            "vertices": [cluster[0],cluster[-1]],
             "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster)
                         })
             i = i+1

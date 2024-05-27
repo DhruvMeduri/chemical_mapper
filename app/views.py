@@ -761,7 +761,7 @@ def send_structure():
        vertices[i] = int(vertices[i])
        print(vertices)
        line = linecache.getline("./CLI_examples/processed_data.csv", vertices[i]+2)
-       structure = line.split(',')[-1]
+       structure = line.split(',')[-2]
    #print(df.iloc[0]['Structure'])
        #structure = df.iloc[vertices[i]]['Structure']
        print(structure)
