@@ -311,8 +311,8 @@ if __name__ == '__main__':
 
     # Picking the right scaffold column
     col_names = linecache.getline(output_dir+'/processed_data.csv', 2)
-    check = col_names.split(',')[-1]
-    if check == 'structure':
+    check = col_names.split(',')[-2]
+    if check == 'Scaffold':
         k = -2
     else:
         k = -1
