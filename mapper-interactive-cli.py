@@ -145,19 +145,17 @@ def wrangle_csv(df):
 
     newdf4 = pd.DataFrame(newdf4)
     newdf4.columns = newdf4_cols
-    print(newdf4.shape)
-   
-
+    newdf4.to_csv(join(output_dir, 'wrangled_data.csv'),index=False)
 
     return newdf4
 
 # Only for the chemical mapper
-def for_label_scaffold(filename,array):
+def for_label_scaffold(filename,array,scaffold_col):
     categorical = {"label":{},"scaffold":{}}
     for i in array:
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
         label = line.split(',')[-3]
-        scaffold = line.split(',')[-1]
+        scaffold = line.split(',')[scaffold_col]
         if label not in categorical["label"]:
             categorical["label"][label] = 1
         else:
@@ -268,7 +266,6 @@ if __name__ == '__main__':
         df = wrangle_csv(df)
 
     # Regardless, we want normalize_datato save the data for bookkeeping
-    df.to_csv(join(output_dir, 'wrangled_data.csv'),index=False)
     df_np = df.to_numpy()
     df_np = np.float32(df_np)#Very impoortant line
     df_np = normalize_data(df_np, norm_type=norm)
@@ -312,7 +309,13 @@ if __name__ == '__main__':
         json.dump(meta, fp)
 
 
-
+    # Picking the right scaffold column
+    col_names = linecache.getline(output_dir+'/processed_data.csv', 2)
+    check = col_names.split(',')[-1]
+    if check == 'structure':
+        k = -2
+    else:
+        k = -1
     for overlap, interval in tqdm(itertools.product(overlaps, intervals)):
 
         g = graph_to_dict(mapper_wrapper(
@@ -333,7 +336,7 @@ if __name__ == '__main__':
             "id_orignal": key,
             "size": len(g['nodes'][key]),
             "vertices": [cluster[0],cluster[-1]],
-            "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster)
+            "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster,k)
                         })
             i = i+1
         
