@@ -310,7 +310,7 @@ if __name__ == '__main__':
 
 
     # Picking the right scaffold column
-    col_names = linecache.getline(output_dir+'/processed_data.csv', 2)
+    col_names = linecache.getline(output_dir+'/processed_data.csv', 1)
     check = col_names.split(',')[-2]
     if check == 'Scaffold':
         k = -2
