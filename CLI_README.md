@@ -34,7 +34,7 @@ python data.csv --intervals 10:50:10 --overlaps 25:35:5 --clusterer dbscan --eps
 
 ### Output format
 
-Unless specified with the output flag, the default export directory is `./graph/`. Each mapper graph has the form "mapper\_{file name of data}\_{interval}\_{overlap}.json" where overlap is the integer representing a percent (i.e. 35 for 35%). There are two additional files. `./graph/wrangled_data.csv` contains the processed data if preprocessing was requested and `./graph/metadata.json` contains parameters passed to the CLI tool.
+Unless specified with the output flag, the default export directory is `./CLI_examples/`. Each mapper graph has the form "final\_{interval}\_{overlap}\_{epsilon}\_{min samples}.json" where overlap is the integer representing a percent (i.e. 35 for 35%). There are two additional files. `./CLI_examples/wrangled_data.csv` contains the processed data if preprocessing was requested and `./CLI_examples/metadata.json` contains parameters passed to the CLI tool.
 
 ---
 
