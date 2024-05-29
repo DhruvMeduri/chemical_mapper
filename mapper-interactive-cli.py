@@ -210,7 +210,7 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--filter', type=str,
                         help='Which filter function to use. See docs for choices.')
     parser.add_argument('-output', type=str,
-                        help='Output Directory. Defaults to "./graph/"', default='./graph/')
+                        help='Output Directory. Defaults to "./graph/"', default='./CLI_examples/')
     parser.add_argument('--no-preprocess', action='store_true')
     parser.add_argument('--threads', type=int, default=16,
                         help='Number of threads to allocate')

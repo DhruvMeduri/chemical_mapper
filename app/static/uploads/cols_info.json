@@ -302,9 +302,10 @@
         "Col299"
     ],
     "cols_categorical": [
-        "Label",
+        "Label"
+    ],
+    "cols_others": [
         "Structure",
         "Scaffold"
-    ],
-    "cols_others": []
+    ]
 }

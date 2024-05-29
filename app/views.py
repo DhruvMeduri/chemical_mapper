@@ -95,6 +95,7 @@ def process_text_data():
     newdf3.columns = newdf3_cols
     # write the data frame
     newdf3.to_csv(APP_STATIC+"/uploads/processed_data.csv", index=False) 
+    newdf3.to_csv("./CLI_examples/processed_data.csv", index=False) 
     # write the cols info
     cols_numerical = [cols[idx] for idx in cols_numerical_idx]
     cols_categorical = [cols[idx] for idx in cols_categorical_idx]
@@ -773,7 +774,6 @@ def send_structure():
        structure = line.split(',')[k]
    #print(df.iloc[0]['Structure'])
        #structure = df.iloc[vertices[i]]['Structure']
-       print(structure)
        draw_structure.draw_chem(structure)
        with open("./app/sample.png", "rb") as img_file:
             my_string.append(base64.b64encode(img_file.read()).decode("utf-8"))
