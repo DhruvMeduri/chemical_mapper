@@ -1,4 +1,4 @@
-# Mapper Interactive (Integrated with adaptive cover)
+# Mapper Interactive (Particularly for chemistry)
 
 
 
@@ -18,7 +18,7 @@ python3 run.py
 After running the above commands, you can run Mapper Interactive by visiting http://127.0.0.1:8080/ on the local machine (If possible, please use Chrome).
 
 ## Dependencies
-This software requires [Kepler Mapper](https://kepler-mapper.scikit-tda.org/), [scikit-learn](https://scikit-learn.org/stable/), [NetworkX](https://networkx.github.io/) and [flask](https://flask.palletsprojects.com/en/1.1.x/) to run.
+This software requires [Kepler Mapper](https://kepler-mapper.scikit-tda.org/), [scikit-learn](https://scikit-learn.org/stable/), [NetworkX](https://networkx.github.io/), [flask](https://flask.palletsprojects.com/en/1.1.x/) and [rdkit](https://www.rdkit.org/) to run.
 
 If you do not have these packages installed, please use the following command to intall them.
 
@@ -27,11 +27,7 @@ pip install scikit-learn
 pip install networkx
 pip install flask
 pip install flask_assets
-```
-
-To perform linear regression, please also make sure you have [statsmodels](https://www.statsmodels.org/stable/index.html) installed.
-```bash
-pip install statsmodels
+pip install rdkit
 ```
 
 ## Loading a dataset
@@ -40,25 +36,10 @@ When loading a dataset into the interface, please make sure to put the data file
 ## Command-line API
 Please refer to a user-guide [here](CLI_README.md) for the command-line API.
 
-## Video
+## Interactive Visualizaton of precomputed Mapper
 
-[![Screenshot of video](app/static/assets/video-teaser.png)](https://www.youtube.com/watch?v=z2VEkv1apF8)
+Place the precomputed mapper graph (final_.json) in the CLI_examples folder along with the processed_data.csv file. Then import the CLI_examples folder using import graph on the sidebar. A few of the  mappers and processed_data files have been uploaded to the following google drive.
 
-## License
-
-This project is licensed under the MIT License - see the `LICENSE` file for details.
-
-## Contributing
-
-Pull requests are welcomed. 
-
-## Cite
-
-Mapper Interactive: A Scalable, Extendable, and Interactive Toolbox for the Visual Exploration of High-Dimensional Data.
-Youjia Zhou, Nithin Chalapathi, Archit Rathore, Yaodong Zhao, Bei Wang.\
-*IEEE Pacific Visualization (PacificVis)*, accepted, 2021.
-
-https://arxiv.org/abs/2011.03209.
 
 
 
