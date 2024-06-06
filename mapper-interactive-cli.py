@@ -156,7 +156,7 @@ def for_label_scaffold(filename,array,scaffold_col):
     categorical = {"label":{},"scaffold":{}}
     for i in array:
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
-        label = line.split(',')[-3]
+        label = line.split(',')[-2]
         scaffold = line.split(',')[scaffold_col]
         if label not in categorical["label"]:
             categorical["label"][label] = 1
@@ -181,8 +181,7 @@ def MHFP6(array,size):
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
         struct = line.split(',')[-1]
         temp = mhfp_encoder.encode(struct)
-        if mhfp_encoder.distance(temp,ref)>max1:
-            max1 = mhfp_encoder.distance(temp,ref)
+        max1 = max1 + mhfp_encoder.distance(temp,ref)>max1
 
     a = range(size)
     ran = np.random.choice(a,size=len(array),replace=False)
@@ -192,10 +191,9 @@ def MHFP6(array,size):
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
         struct = line.split(',')[-1]
         temp = mhfp_encoder.encode(struct)
-        if mhfp_encoder.distance(temp,ref)>max2:
-            max2 = mhfp_encoder.distance(temp,ref)
+        max2 =  mhfp_encoder.distance(temp,ref) + max2
 
-    return [max1,max2]
+    return [max1/len(array),max2/len(array)]
 
 
 
@@ -371,7 +369,7 @@ if __name__ == '__main__':
             "id_orignal": key,
             "size": len(g['nodes'][key]),
             "vertices": [cluster[0],cluster[-1]],
-            "avgs":{"MHFP6_diam":mhf[0],"MHFP6__rand_diam":mhf[1]},
+            "avgs":{"MHFP6_avg":mhf[0],"MHFP6_rand_avg":mhf[1]},
             "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster,k)
                         })
             i = i+1
@@ -389,7 +387,7 @@ if __name__ == '__main__':
         data['links'].append({"source": link[0], "target": link[1]})
         
     connected_components = compute_cc(data)
-    to_dump = {'mapper':data,'col_keys':['MHFP6_diam','MHFP6_rand_diam'],'connected_components':connected_components,'categorical_cols':['label','scaffold']}
+    to_dump = {'mapper':data,'col_keys':['MHFP6_avg','MHFP6_rand_avg'],'connected_components':connected_components,'categorical_cols':['label','scaffold']}
     with open(output_dir+'/final.json', 'w') as fp:
             json.dump(to_dump, fp)
     print("COMPLETE")
