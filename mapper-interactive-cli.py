@@ -156,7 +156,7 @@ def for_label_scaffold(filename,array,scaffold_col):
     categorical = {"label":{},"scaffold":{}}
     for i in array:
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
-        label = line.split(',')[-2]
+        label = line.split(',')[-3]
         scaffold = line.split(',')[scaffold_col]
         if label not in categorical["label"]:
             categorical["label"][label] = 1
