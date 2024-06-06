@@ -1,6 +1,7 @@
 import pandas as pd
 import argparse
 import os
+import random
 import linecache
 import re
 import networkx as nx
@@ -15,6 +16,7 @@ from os.path import join
 from tqdm import tqdm
 from sklearn.preprocessing import MinMaxScaler, normalize
 import csv
+from mhfp.encoder import MHFPEncoder
 
 def mkdir(f):
     if not os.path.exists(f):
@@ -167,6 +169,38 @@ def for_label_scaffold(filename,array,scaffold_col):
             categorical["scaffold"][scaffold] = categorical["scaffold"][scaffold] + 1   
     return categorical
 
+def MHFP6(array,size):
+    # This gives a 0.5 approximation of the diameter of each cluster
+    r = random.choice(array)
+    mhfp_encoder = MHFPEncoder()
+    line = linecache.getline(output_dir+'/processed_data.csv', r+2)
+    struct = line.split(',')[-1]
+    ref = mhfp_encoder.encode(struct)
+    max1 = 0
+    for i in array:
+        line = linecache.getline(output_dir+'/processed_data.csv', i+2)
+        struct = line.split(',')[-1]
+        temp = mhfp_encoder.encode(struct)
+        if mhfp_encoder.distance(temp,ref)>max1:
+            max1 = mhfp_encoder.distance(temp,ref)
+
+    a = range(size)
+    ran = np.random.choice(a,size=len(array),replace=False)
+
+    max2 = 0
+    for i in ran:
+        line = linecache.getline(output_dir+'/processed_data.csv', i+2)
+        struct = line.split(',')[-1]
+        temp = mhfp_encoder.encode(struct)
+        if mhfp_encoder.distance(temp,ref)>max2:
+            max2 = mhfp_encoder.distance(temp,ref)
+
+    return [max1,max2]
+
+
+
+
+
 def compute_cc(graph): 
     '''
     Compute connected components for the mapper graph
@@ -267,7 +301,7 @@ if __name__ == '__main__':
 
     # Regardless, we want normalize_datato save the data for bookkeeping
     df_np = df.to_numpy()
-    df_np = np.float32(df_np)#Very impoortant line
+    df_np = np.float32(df_np)#Very important line
     df_np = normalize_data(df_np, norm_type=norm)
     #print("CHECK: ",df_np)
     overlaps = extract_range(overlaps_str)
@@ -330,12 +364,14 @@ if __name__ == '__main__':
         name2id = {}
         for key in node_keys:
             cluster = g['nodes'][key]
+            mhf = MHFP6(cluster,1900000)
             name2id[key] = i
             data['nodes'].append({
             "id": str(i),
             "id_orignal": key,
             "size": len(g['nodes'][key]),
             "vertices": [cluster[0],cluster[-1]],
+            "avgs":{"MHFP6_diam":mhf[0],"MHFP6__rand_diam":mhf[1]},
             "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster,k)
                         })
             i = i+1
@@ -353,7 +389,7 @@ if __name__ == '__main__':
         data['links'].append({"source": link[0], "target": link[1]})
         
     connected_components = compute_cc(data)
-    to_dump = {'mapper':data,'connected_components':connected_components,'categorical_cols':['label','scaffold']}
+    to_dump = {'mapper':data,'col_keys':['MHFP6_diam','MHFP6_rand_diam'],'connected_components':connected_components,'categorical_cols':['label','scaffold']}
     with open(output_dir+'/final.json', 'w') as fp:
             json.dump(to_dump, fp)
     print("COMPLETE")

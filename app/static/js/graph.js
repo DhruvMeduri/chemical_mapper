@@ -3,6 +3,7 @@ class Graph{
         this.nodes = graph_data.nodes;
         this.links = graph_data.links;
         this.col_keys = col_keys;
+        console.log("DEBUG: ",col_keys);
         this.connected_components = {};
         for(let i=0; i<connected_components.length; i++){
             this.connected_components["cluster"+i] = connected_components[i];
@@ -103,6 +104,8 @@ class Graph{
         value_dropdown.onchange = function(){
             value = value_dropdown.options[value_dropdown.selectedIndex].text;
             that.color_col = value;
+            console.log("ULT: ",value);
+            console.log(that.col_keys);
             if(that.col_keys.indexOf(value)!=-1 || value==="Number of points"){
                 $('#color-legend-svg').remove();
                 if(scale === "Default range"){
@@ -860,6 +863,7 @@ class Graph{
     }
 
     fill_vertex(col_key){
+        console.log("ULTIMATE: ",col_key);
         d3.selectAll(".viewer-graph__pie").remove();
         d3.selectAll(".viewer-graph__vertex")
             .attr("fill", d=>{

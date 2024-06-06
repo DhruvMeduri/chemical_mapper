@@ -136,27 +136,6 @@ def process_text_data():
 #     with open(APP_STATIC+"/uploads/cols_info.json", 'w') as f:
 #         f.write(json.dumps(cols_dict, indent=4))
 #     return jsonify(columns=cols_numerical, categorical_columns=cols_categorical, other_columns=cols_others)
-def for_label_scaffold(filename,array):
-
-    categorical = {"label":{},"scaffold":{}}
-    for i in array:
-        with open(filename) as f:
-            whole = next(itertools.islice(csv.reader(f), i+1, None))
-        label = whole[-3]
-        scaffold = whole[-2]
-        if label not in categorical["label"]:
-            categorical["label"][label] = 1
-        else:
-            categorical["label"][label] = categorical["label"][label] + 1
-        
-        if scaffold not in categorical["scaffold"]:
-            categorical["scaffold"][scaffold] = 1
-        else:
-            categorical["scaffold"][scaffold] = categorical["scaffold"][scaffold] + 1
-            
-    return categorical
-            
-
 
 @app.route('/mapper_data_process', methods=['POST','GET'])
 def load_mapper_data():

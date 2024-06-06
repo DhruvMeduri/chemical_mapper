@@ -27,7 +27,7 @@ d3.select("#graph_directory")
                 dataType:'text',
                 success: function (response) {
                     res = JSON.parse(response);
-                    that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, res.categorical_cols, that.side_bar.other_cols);
+                    that.graph = new Graph(res.mapper, res.col_keys, res.connected_components, res.categorical_cols, that.side_bar.other_cols);
                     //that.side_bar = new DataLoader(response.columns, response.categorical_columns, response.other_columns);
                 },
                 error: function (error) {
