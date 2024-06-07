@@ -184,11 +184,10 @@ def MHFP6(array,size):
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
         struct = line.split(',')[-1]
         temp = mhfp_encoder.encode(struct)
-        max1 = max1 + mhfp_encoder.distance(temp,ref)>max1
+        max1 = max1 + mhfp_encoder.distance(temp,ref)
 
     a = range(size)
     ran2 = np.random.choice(a,size=samples,replace=False)
-
     max2 = 0
     for i in ran2:
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
@@ -196,7 +195,7 @@ def MHFP6(array,size):
         temp = mhfp_encoder.encode(struct)
         max2 =  mhfp_encoder.distance(temp,ref) + max2
 
-    return [max1/size,max2/size]
+    return [max1/samples,max2/samples]
 
 
 
