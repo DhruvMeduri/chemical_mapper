@@ -737,20 +737,14 @@ def send_structure():
    vertices = selected_vertex_id.split(',')
    my_string = []
 
-   # Picking the right scaffold column
-   col_names = linecache.getline('./CLI_examples/processed_data.csv', 1)
-   check = col_names.split(',')[-2]
-   if check == 'Scaffold':
-        k = -1
-   else:
-        k = -2
-   #df = pd.read_csv("CLI_examples/processed_data.csv") 
-   print("DEBUG:",k)
+   # Picking the right structure column
+   struct_col = -1
+   #df = pd.read_csv("CLI_examples/processed_data.csv")
    for i in range(len(vertices)):
        vertices[i] = int(vertices[i])
        print(vertices)
        line = linecache.getline("./CLI_examples/processed_data.csv", vertices[i]+2)
-       structure = line.split(',')[k]
+       structure = line.split(',')[struct_col]
    #print(df.iloc[0]['Structure'])
        #structure = df.iloc[vertices[i]]['Structure']
        draw_structure.draw_chem(structure)

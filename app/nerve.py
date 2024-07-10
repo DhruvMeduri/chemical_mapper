@@ -77,9 +77,9 @@ class GraphNerve(Nerve):
         candidates = list(candidates)
  
         print("COMPUTING LINKS")
-        for i in range(len(cube_markers)-2):
+        for i in range(len(cube_markers)-4):
             # if there are non-unique members in the union
-            if i == 0:
+            if i < 3:
                 for r in range(cube_markers[0]):
                     for c in range(cube_markers[0],cube_markers[1]):
                         if (
@@ -95,7 +95,23 @@ class GraphNerve(Nerve):
                         >= self.min_intersection
                 ):
                             result[candidates[r]].append(candidates[c])
-                            #print([candidates[r],candidates[c]])
+
+                for r in range(cube_markers[i-1],cube_markers[i]):
+                    for c in range(cube_markers[i+1],cube_markers[i+2]):
+                        if (
+                        len(set(nodes[candidates[r]]).intersection(set(nodes[candidates[c]])))
+                        >= self.min_intersection
+                ):
+                            result[candidates[r]].append(candidates[c])
+
+                for r in range(cube_markers[i-1],cube_markers[i]):
+                    for c in range(cube_markers[i+2],cube_markers[i+3]):
+                        if (
+                        len(set(nodes[candidates[r]]).intersection(set(nodes[candidates[c]])))
+                        >= self.min_intersection
+                ):
+                            result[candidates[r]].append(candidates[c])
+                        
                 
                 for r in range(cube_markers[i-2],cube_markers[i-1]):
                     for c in range(cube_markers[i-1],cube_markers[i]):
@@ -104,7 +120,23 @@ class GraphNerve(Nerve):
                         >= self.min_intersection
                 ):
                             result[candidates[r]].append(candidates[c])
+
+                for r in range(cube_markers[i-3],cube_markers[i-2]):
+                    for c in range(cube_markers[i-1],cube_markers[i]):
+                        if (
+                        len(set(nodes[candidates[r]]).intersection(set(nodes[candidates[c]])))
+                        >= self.min_intersection
+                ):
+                            result[candidates[r]].append(candidates[c])
                             #print([candidates[r],candidates[c]])
+
+                for r in range(cube_markers[i-4],cube_markers[i-3]):
+                    for c in range(cube_markers[i-1],cube_markers[i]):
+                        if (
+                        len(set(nodes[candidates[r]]).intersection(set(nodes[candidates[c]])))
+                        >= self.min_intersection
+                ):
+                            result[candidates[r]].append(candidates[c])
 
             #cube1 = int(candidate[0].split('_')[0].replace('cube',''))
             #cube2 = int(candidate[1].split('_')[0].replace('cube',''))

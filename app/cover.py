@@ -210,7 +210,7 @@ class Cover:
                 " - Cover - centers: %s\ninner_range: %s\nradius: %s"
                 % (self.centers_, self.inner_range_, self.radius_)
             )
-
+        print("CHEK: ",centers)
         return centers
 
     def transform_single(self, data, center, i=0):

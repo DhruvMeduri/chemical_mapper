@@ -152,11 +152,11 @@ def wrangle_csv(df):
     return newdf4
 
 # Only for the chemical mapper
-def for_label_scaffold(filename,array,scaffold_col):
+def for_label_scaffold(filename,array,scaffold_col,label_col):
     categorical = {"label":{},"scaffold":{}}
     for i in array:
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
-        label = line.split(',')[-3]
+        label = line.split(',')[label_col]
         scaffold = line.split(',')[scaffold_col]
         if label not in categorical["label"]:
             categorical["label"][label] = 1
@@ -169,33 +169,39 @@ def for_label_scaffold(filename,array,scaffold_col):
             categorical["scaffold"][scaffold] = categorical["scaffold"][scaffold] + 1   
     return categorical
 
-def MHFP6(array,size):
+def MHFP6(array,size,struc_col):
     # This gives a 0.5 approximation of the diameter of each cluster
-    r = random.choice(array)
-    mhfp_encoder = MHFPEncoder()
-    line = linecache.getline(output_dir+'/processed_data.csv', r+2)
-    struct = line.split(',')[-1]
-    ref = mhfp_encoder.encode(struct)
-    samples = min(100,len(array))
 
-    ran1 = np.random.choice(array,size=samples,replace=False)
+    mhfp_encoder = MHFPEncoder()
     max1 = 0
-    for i in ran1:
+    print("SIZE OF CLUSTER: ",len(array))
+    k = min(len(array),25)
+
+    ref = random.choice(array)
+    line = linecache.getline(output_dir+'/processed_data.csv', ref+2)
+    struct = line.split(',')[struc_col]
+    ref = mhfp_encoder.encode(struct)
+    
+    r = random.sample(array,k)
+    for i in r:
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
-        struct = line.split(',')[-1]
+        struct = line.split(',')[struc_col]
         temp = mhfp_encoder.encode(struct)
         max1 = max1 + mhfp_encoder.distance(temp,ref)
 
     a = range(size)
-    ran2 = np.random.choice(a,size=samples,replace=False)
     max2 = 0
-    for i in ran2:
+    r = random.sample(a,k)
+
+    for i in r:
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
-        struct = line.split(',')[-1]
+        struct = line.split(',')[struc_col]
         temp = mhfp_encoder.encode(struct)
         max2 =  mhfp_encoder.distance(temp,ref) + max2
 
-    return [max1/samples,max2/samples]
+    print("AVGS: ",[max1/k,max2/k])
+    return [max1/k,max2/k]
+
 
 
 
@@ -346,10 +352,12 @@ if __name__ == '__main__':
     # Picking the right scaffold column
     col_names = linecache.getline(output_dir+'/processed_data.csv', 1)
     check = col_names.split(',')[-2]
-    if check == 'Scaffold':
-        k = -2
-    else:
-        k = -1
+
+    scaffold_col = -2
+    struct_col = -1
+    label_col = -3
+
+
     for overlap, interval in tqdm(itertools.product(overlaps, intervals)):
 
         g = graph_to_dict(mapper_wrapper(
@@ -364,15 +372,16 @@ if __name__ == '__main__':
         name2id = {}
         for key in node_keys:
             cluster = g['nodes'][key]
-            mhf = MHFP6(cluster,1900000)
+            print("NODE NUMBER: ",i)
+            #mhf = MHFP6(cluster,1500,struct_col)
             name2id[key] = i
             data['nodes'].append({
             "id": str(i),
             "id_orignal": key,
             "size": len(g['nodes'][key]),
-            "vertices": [cluster[0],cluster[-1]],
-            "avgs":{"MHFP6_avg":mhf[0],"MHFP6_rand_avg":mhf[1]},
-            "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster,k)
+            "vertices": cluster,
+            "avgs":{"MHFP6_avg":0,"MHFP6_rand_avg":0},
+            "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster,scaffold_col,label_col)
                         })
             i = i+1
         

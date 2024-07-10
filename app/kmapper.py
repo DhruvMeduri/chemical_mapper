@@ -515,6 +515,7 @@ class KeplerMapper(object):
 
         # Cover scheme defines a list of elements
         bins = self.cover.fit(lens)
+        print("DEBUG: ",self.cover)
 
         # Algo's like K-Means, have a set number of clusters. We need this number
         # to adjust for the minimal number of samples inside an interval before
@@ -527,7 +528,7 @@ class KeplerMapper(object):
                 "min_cluster_size", cluster_params.get("min_samples", 1)
             ),
         )
-
+        print("CLUSTER_MIN: ",min_cluster_samples,"\n")
         if self.verbose > 1:
             print(
                 "Minimal points in hypercube before clustering: %d"
@@ -576,7 +577,6 @@ class KeplerMapper(object):
                 else:
                     dist_mat = pairwise_distances(
                         fit_data, n_jobs=n_threads, metric=metric)
-
                 # if self.verbose > 1:
                 #     print(f'Computed distance matrix of shape{dist_mat.shape} in {datetime.now() - start}')
                 print(dist_mat.shape)

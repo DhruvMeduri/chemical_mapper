@@ -33,6 +33,10 @@
         "Col30",
         "Col31"
     ],
-    "cols_categorical": [],
-    "cols_others": []
+    "cols_categorical": [
+        "Label"
+    ],
+    "cols_others": [
+        "Structure"
+    ]
 }
