@@ -7,7 +7,7 @@ import re
 import networkx as nx
 import app.views as MI  # MapperInteractive
 from app import kmapper as km
-from app import cover as km_cover
+from app import cover as km_from flask import render_template,request, url_for, jsonify, redirect, Response, send_from_direcover
 from sklearn.cluster import DBSCAN, MeanShift, AgglomerativeClustering
 import json
 import itertools

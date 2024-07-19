@@ -34,7 +34,8 @@
         "Col31"
     ],
     "cols_categorical": [
-        "Label"
+        "Label",
+        "Scaffold"
     ],
     "cols_others": [
         "Structure"

@@ -6,8 +6,9 @@ function chem_draw(hover_node,nodes)
     //let vert = ''
 
     node_index =hover_node - 1;
-    vertices.push(nodes[node_index].vertices[0])
-    vertices.push(nodes[node_index].vertices[nodes[node_index].vertices.length - 1])
+    vertices = nodes[node_index].vertices
+    console.log("DEBUG: ",vertices)
+    //vertices.push(nodes[node_index].vertices[nodes[node_index].vertices.length - 1])
     vertices = vertices.toString();
 
     $.ajax({
@@ -16,33 +17,25 @@ function chem_draw(hover_node,nodes)
         data: vertices,
         dataType:'text',
         success: function (response) {
+            d3.select('#chemicalSVG').selectAll('*').remove();
             response = JSON.parse(response);
             //document.getElementById('chemical-viewer').src = 'data:;base64,' + response['image'];
-            console.log(response)
-            byteCharacters = atob(response['image1']);
-                byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                byteArray = new Uint8Array(byteNumbers);
-            console.log(byteArray)
-            var blob = new Blob([byteArray], {'type': 'image/png'});
-            var url = URL.createObjectURL(blob);
-            console.log(url)
-            d3.select('#chemicalSVG').append('svg:image').attr("xlink:href",url).attr('x',100).attr('height',180)
-
-            byteCharacters = atob(response['image2']);
+            for(let i = 0; i<Object.keys(response).length-1; i++)
+            {
+                //let temp = 'image'.concat(i.toString())
+                //console.log('CHECK: ',i)
+                byteCharacters = atob(response[i]['image']);
                     byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
                     byteArray = new Uint8Array(byteNumbers);
-            console.log(byteArray)
-            var blob = new Blob([byteArray], {'type': 'image/png'});
-            url = URL.createObjectURL(blob);
-            console.log(url)
-            d3.select('#chemicalSVG').append('svg:image').attr("xlink:href",url).attr('x',500).attr('height',180)
-
+                console.log(byteArray)
+                var blob = new Blob([byteArray], {'type': 'image/png'});
+                var url = URL.createObjectURL(blob);
+                console.log(url)
+                d3.select('#chemicalSVG').append('svg:image').attr("xlink:href",url).attr('x',response[i]['group']*280).attr('y',(response[i]['vertex']*275)).attr('height',250).attr('width',250)
+            }
             
         },
         error: function (error) {

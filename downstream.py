@@ -5,7 +5,7 @@ import linecache
 import numpy as np
 import random
 # I want to do some node analysis
-file = open('CLI_examples/final_100_50_1.5_10.json')
+file = open('CLI_examples/final.json')
 graph = json.load(file)
 adj = np.zeros(shape = (len(graph['mapper']['nodes']),len(graph['mapper']['nodes'])))
 edges = graph['mapper']['links']
@@ -25,7 +25,7 @@ for i in range(len(graph['mapper']['nodes'])):
 
 # Now to compute the path we compute a random walk
  
-query = 289
+query = 209
 pos = np.zeros(len(graph['mapper']['nodes']))
 pos[query-1] = 1
 check = np.matmul(pos,trans)

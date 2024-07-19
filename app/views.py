@@ -732,25 +732,17 @@ def call_module_function(data, cols, module_info):
 
 @app.route('/send_structure', methods=['POST','GET'])
 def send_structure():
-   import base64
+   import random
+   from app import draw_structure
    selected_vertex_id = request.get_data().decode('utf-8')
    vertices = selected_vertex_id.split(',')
-   my_string = []
-
+   vertices = random.sample(vertices,min(100,len(vertices)))
    # Picking the right structure column
    struct_col = -1
-   #df = pd.read_csv("CLI_examples/processed_data.csv")
-   for i in range(len(vertices)):
-       vertices[i] = int(vertices[i])
-       print(vertices)
-       line = linecache.getline("./CLI_examples/processed_data.csv", vertices[i]+2)
-       structure = line.split(',')[struct_col]
-   #print(df.iloc[0]['Structure'])
-       #structure = df.iloc[vertices[i]]['Structure']
-       draw_structure.draw_chem(structure)
-       with open("./app/sample.png", "rb") as img_file:
-            my_string.append(base64.b64encode(img_file.read()).decode("utf-8"))
-   return json.dumps({"success": 1, "image1":my_string[0],"image2":my_string[1]})
+   scaffold_col = -2
+   images = draw_structure.draw_chem(vertices,struct_col,scaffold_col)
+   
+   return json.dumps(images)
 
 @app.route('/knn', methods=['POST','GET'])
 def for_KNN():
@@ -760,7 +752,7 @@ def for_KNN():
     print("EE: ",min_samples)
     from pynndescent import NNDescent
     df = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv")
-    activations = df.iloc[:, 0:299]
+    activations = df.iloc[:, 0:31]
     k = min_samples
     index = NNDescent(activations, metric='euclidean')
     out = index.query(activations, k=k)

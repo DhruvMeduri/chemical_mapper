@@ -507,4 +507,15 @@ input:disabled{
 .slider_handler.highlighted{
   opacity: 0.5;
 }
-
+#chemical-viewer
+{
+  position: relative;
+  width: 100%;
+  overflow-x: scroll;
+  overflow-y: scroll;
+}
+#chemicalSVG
+{
+  width: 2000pt;
+  height: 25000pt;
+}

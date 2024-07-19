@@ -389,9 +389,18 @@ class Graph{
             .on("click", ()=>{
                 this.select_path();
             })
+        d3.select("#chem-viewer")
+            .on("click", ()=>{
+                this.select_chem();
+            })
+        d3.select("#component")
+            .on("click", ()=>{
+                this.select_component();
+            })
     }
 
     select_node(){
+        
         this.selected_nodes = [];
         this.if_select_node = true;
         d3.select("#select-node").classed("selected", true);
@@ -401,6 +410,9 @@ class Graph{
         this.if_select_path = false;
         d3.select("#select-path").classed("selected", false);
         this.unhighlight_all()
+        this.if_select_chem = false
+        this.if_select_component=false
+        d3.select('#chemicalSVG').selectAll('*').remove();
         
     }
 
@@ -414,6 +426,9 @@ class Graph{
         this.if_select_path = false;
         d3.select("#select-path").classed("selected", false);
         this.unhighlight_all();
+        this.if_select_chem = false
+        this.if_select_component = false
+        d3.select('#chemicalSVG').selectAll('*').remove();
     }
 
     select_path(){
@@ -430,9 +445,13 @@ class Graph{
         this.if_select_cluster = false;
         d3.select("#select-cluster").classed("selected", false);
         this.unhighlight_all();
+        this.if_select_chem = false
+        this.if_select_component=false
+        d3.select('#chemicalSVG').selectAll('*').remove();
     }
 
     select_view(){
+        this.make_all_visible();
         this.selected_nodes = [];
         d3.select("#unselect-view").classed("selected", true);
         this.if_select_node = false;
@@ -444,7 +463,54 @@ class Graph{
         d3.selectAll(".viewer-graph__vertex").classed("selected", false);
         this.remove_hist();
         this.unhighlight_all();
+        this.if_select_chem = false
+        this.if_select_component = false
+        d3.select('#chemicalSVG').selectAll('*').remove();
 
+    }
+
+    select_chem(){
+        this.selected_nodes = [];
+        d3.select("#unselect-view").classed("selected", true);
+        this.if_select_node = false;
+        d3.select("#select-node").classed("selected", false);
+        this.if_select_cluster = false;
+        d3.select("#select-cluster").classed("selected", false);
+        this.if_select_path = false;
+        d3.select("#select-path").classed("selected", false);
+        d3.selectAll(".viewer-graph__vertex").classed("selected", false);
+        this.if_select_chem = true
+        this.remove_hist();
+        this.unhighlight_all();
+        d3.select('#chemicalSVG').selectAll('*').remove();
+
+    }
+
+    select_component(){
+        this.selected_nodes = [];
+        this.if_select_component = true;
+        d3.select('#component').classed("selected",true)
+        d3.select("#select-cluster").classed("selected", false);
+        d3.select("#unselect-view").classed("selected", false);
+        this.if_select_node = false;
+        this.if_select_cluster = false;
+        d3.select("#select-node").classed("selected", false);
+        this.if_select_path = false;
+        d3.select("#select-path").classed("selected", false);
+        this.unhighlight_all();
+        this.if_select_chem = false
+        d3.select('#chemicalSVG').selectAll('*').remove();
+    }
+
+    make_all_hidden()
+    {
+        d3.select('#graphSVG').selectAll('*').style("visibility","hidden");
+        console.log("HH")
+    }
+
+    make_all_visible()
+    {
+        d3.select('#graphSVG').selectAll('*').style("visibility","visible");
     }
 
     draw_hist(){
@@ -631,7 +697,7 @@ class Graph{
                 if(this.if_select_node) {
                     if(this.selected_nodes.indexOf(d.id) === -1){
                         this.highlight_selectable(d.id);
-                        chem_draw(d.id,this.nodes);
+                        
                     }
                 } else if(this.if_select_cluster) {
                     if(this.selected_nodes.indexOf(d.id) === -1) {
@@ -640,7 +706,6 @@ class Graph{
                             this.highlight_selectable((nId+1).toString());
                         })
                     }
-                    chem_draw(d.id,this.nodes);
                 }
                 else if(this.if_select_path){
                     if(this.selected_nodes.length === 0){
@@ -655,8 +720,7 @@ class Graph{
             })
             .on("mouseout", ()=>{
                 if(this.if_select_node || this.if_select_cluster || this.if_select_path){
-                    this.unhighlight_selectable();
-                    d3.select('#chemicalSVG').selectAll('*').remove(); 
+                    this.unhighlight_selectable(); 
                 }             
             })
             .on("click",(d)=>{
@@ -671,7 +735,46 @@ class Graph{
                         this.unhighlight_selected(d.id)
                     }
                     this.draw_hist();
-                } else if(this.if_select_cluster){
+                } 
+                if(this.if_select_chem){
+                    if(this.selected_nodes.indexOf(d.id)===-1){ // Selecting nodes
+                        this.unhighlight_all();
+                        this.selected_nodes = []
+                        this.selected_nodes.push(d.id);
+                        this.highlight_selected(d.id)
+                        chem_draw(d.id,this.nodes);
+                    } else{ // Unselecting
+                        this.selected_nodes.splice(this.selected_nodes.indexOf(d.id),1);
+                        this.unhighlight_selected(d.id)
+                        d3.select('#chemicalSVG').selectAll('*').remove();
+                    }
+                    this.draw_hist();
+                }
+
+                else if(this.if_select_component){
+                    this.unhighlight_selectable();
+                    let cluster = this.connected_components[d.clusterId];
+                    if(this.selected_nodes.indexOf(d.id)===-1){
+                        this.make_all_hidden();
+                        let temp1 = 0;
+                        let temp2 = 0;
+                        for(let i = 0; i<cluster.length;i++)
+                        {
+                            temp1 = cluster[i]+1
+                            d3.select("#group"+temp1.toString()).style("visibility","visible");
+                            d3.select("#group"+temp1.toString()).selectAll('*').style("visibility","visible");
+                            d3.select('#node-label'+temp1.toString()).style("visibility","visible");
+                            for(let j = 0; j<cluster.length;j++)
+                            {
+                                temp2 = cluster[j]+1
+                                d3.select('#link'+temp1.toString()+'_'+temp2.toString()).style("visibility","visible");
+                            }
+                        }
+                            
+                            //cluster.forEach(node2=> d3.select('#link'+ node1.toString()+'_'+node2.toString()).style("visibility","visible"))
+                    } 
+                }
+                else if(this.if_select_cluster){
                     this.unhighlight_selectable();
                     let cluster = this.connected_components[d.clusterId];
                     if(this.selected_nodes.indexOf(d.id)===-1){
