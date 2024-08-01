@@ -1,14 +1,15 @@
+
 //This is for the chemistry molecule
 function chem_draw(hover_node,nodes)
 {
     let vertices = []
     let node_index = 0
-    //let vert = ''
 
-    node_index =hover_node - 1;
+    let ids = []
+    nodes.forEach(node => { ids.push(node.id)});
+
+    node_index = ids.indexOf(hover_node);
     vertices = nodes[node_index].vertices
-    console.log("DEBUG: ",vertices)
-    //vertices.push(nodes[node_index].vertices[nodes[node_index].vertices.length - 1])
     vertices = vertices.toString();
 
     $.ajax({
@@ -19,11 +20,8 @@ function chem_draw(hover_node,nodes)
         success: function (response) {
             d3.select('#chemicalSVG').selectAll('*').remove();
             response = JSON.parse(response);
-            //document.getElementById('chemical-viewer').src = 'data:;base64,' + response['image'];
             for(let i = 0; i<Object.keys(response).length-1; i++)
             {
-                //let temp = 'image'.concat(i.toString())
-                //console.log('CHECK: ',i)
                 byteCharacters = atob(response[i]['image']);
                     byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
@@ -43,4 +41,56 @@ function chem_draw(hover_node,nodes)
             alert("Incorrect data format!");
         }
     })
+}
+
+function send_component(a,filename)
+{
+    a = a.toString();
+    console.log(a)
+    console.log(filename)
+    $.post("/send_component",{data:JSON.stringify({'name':filename,'component':a})})
+}
+
+function swap_decomposition(cur_file)
+{
+    that = this;
+    //Let us first do stars
+    console.log(cur_file);
+    $.ajax({
+        type: "POST",
+        url: "/swap_load",
+        data: cur_file,
+        dataType:'text',
+        success: function (response) {
+            res = JSON.parse(response);
+            d3.select('#graphSVG').selectAll('*').remove();
+            //console.log(getEventListeners(document));
+            that.graph = new Graph(res[0].mapper, res[0].col_keys, res[0].connected_components, res[0].categorical_cols, that.side_bar.other_cols,res[1]);
+        },
+        error: function (error) {
+            console.log("error",error);
+            alert("Incorrect data format!");
+        }
+    })
+}
+
+function reset()
+{
+
+    $.ajax({
+        type: "POST",
+        url: "/reset",
+        data: '1',
+        dataType:'text',
+        success: function (response) {
+            res = JSON.parse(response);
+            d3.select('#graphSVG').selectAll('*').remove();
+            that.graph = new Graph(res[0].mapper, res[0].col_keys, res[0].connected_components, res[0].categorical_cols, that.side_bar.other_cols,res[1]);
+        },
+        error: function (error) {
+            console.log("error",error);
+            alert("Incorrect data format!");
+        }
+    })
+
 }

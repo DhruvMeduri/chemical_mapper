@@ -10,6 +10,8 @@ import csv
 import numpy as np
 import pandas as pd
 import os
+import shutil
+import subprocess
 import re
 from .kmapper import KeplerMapper
 from .cover import Cover
@@ -17,6 +19,7 @@ from .cover import Cover
 from sklearn import cluster
 import networkx as nx
 import sklearn
+from graph_decomposition import decompose
 # from sklearn.linear_model import LinearRegression
 try:
     import statsmodels.api as sm
@@ -140,11 +143,12 @@ def process_text_data():
 @app.route('/mapper_data_process', methods=['POST','GET'])
 def load_mapper_data():
     filename = request.get_data().decode('utf-8').splitlines()[0]
+    global original
+    original = filename
     with open(filename) as f:
         mapper_graph = json.load(f)
     #mapper_graph["links"] = mapper_graph["edges"]
     #del mapper_graph["edges"]
-
     #obj.nodes = mapper_graph["nodes"]
     #obj.links = mapper_graph["edges"]
     #mapper_graph_new = _parse_result(mapper_graph, lens_dict={}, data_array=[], if_cli=True)
@@ -744,6 +748,16 @@ def send_structure():
    
    return json.dumps(images)
 
+@app.route('/send_component', methods=['POST','GET'])
+def send_component():
+    json_data = json.loads(request.form.get('data'))
+    c_id = json_data['component']
+    filename = json_data['name']
+    c_id = c_id.replace("cluster","")
+    c_id = int(c_id)
+    decompose.extract_comp(c_id,filename)
+    return "1"
+
 @app.route('/knn', methods=['POST','GET'])
 def for_KNN():
     # # kNN graph
@@ -761,3 +775,148 @@ def for_KNN():
     print(s_dist)
     s_dist = list(s_dist[:,k-1].astype("str"))
     return jsonify(s_dist=s_dist)
+
+
+@app.route('/swap_load', methods=['POST','GET'])
+# The order should be star, cycles and paths
+def swap_load():
+    cur_file = request.get_data().decode('utf-8')
+    print("DEBUG: ",cur_file)
+    if 'star' not in cur_file and 'cycle' not in cur_file and 'path' not in cur_file:
+
+        if os.path.isfile('graph_decomposition/stars/final_star0.json'):
+            os.system('mv '+cur_file + " CLI_examples/original.json")
+            cur_file = 'final_star0.json'
+            os.system('cp ' + 'graph_decomposition/stars/' + cur_file + ' ./CLI_examples' )
+            import_file = './CLI_examples/'+cur_file
+            with open(import_file) as f:
+                mapper_graph = json.load(f)
+                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
+            
+        elif os.path.isfile('graph_decomposition/cycles/final_cycle0.json'):
+            os.system('rm '+cur_file)
+            cur_file = 'final_cycle0.json'
+            os.system('cp ' + 'graph_decomposition/cycles/' + cur_file + ' ./CLI_examples' )
+            import_file = './CLI_examples/'+cur_file
+            with open(import_file) as f:
+                mapper_graph = json.load(f)
+                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
+            
+
+        elif os.path.isfile('graph_decomposition/paths/final_path0.json'):
+            os.system('rm '+cur_file)
+            cur_file = 'final_path0.json'
+            os.system('cp ' + 'graph_decomposition/paths/' + cur_file + ' ./CLI_examples' )
+            import_file = './CLI_examples/'+cur_file
+            with open(import_file) as f:
+                mapper_graph = json.load(f)
+                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
+        
+        else:
+            print("Do Nothing")# Need to fix this later
+
+    if 'star' in cur_file:
+        temp = cur_file
+        temp = temp.replace('star','')
+        temp = temp.replace('.json','')
+        temp = temp.replace('final_','')
+        temp = temp.replace('CLI_examples/','')
+        num = int(temp)
+        num=num+1
+        to_look = 'graph_decomposition/stars/final_star' + str(num) + '.json'
+        if os.path.isfile(to_look):
+            os.system('rm '+cur_file)
+            cur_file = 'final_star' + str(num) + '.json'
+            os.system('cp ' + 'graph_decomposition/stars/' + cur_file + ' ./CLI_examples' )
+            import_file = 'CLI_examples/'+cur_file
+            print(import_file)
+            with open(import_file) as f:
+                mapper_graph = json.load(f)
+                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
+        elif os.path.isfile('graph_decomposition/cycles/final_cycle0.json'):
+            os.system('rm '+cur_file)
+            cur_file = 'final_cycle0.json'
+            os.system('cp ' + 'graph_decomposition/cycles/' + cur_file + ' ./CLI_examples' )
+            import_file = './CLI_examples/'+cur_file
+            with open(import_file) as f:
+                mapper_graph = json.load(f)
+                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
+            
+    if 'cycle' in cur_file:
+        temp = cur_file
+        temp = temp.replace('cycle','')
+        temp = temp.replace('.json','')
+        temp = temp.replace('final_','')
+        temp = temp.replace('CLI_examples/','')
+        print("DEBUG: ",temp)
+        num = int(temp)
+        num=num+1
+        to_look = 'graph_decomposition/cycles/final_cycle' + str(num) + '.json'
+        if os.path.isfile(to_look):
+            os.system('rm '+cur_file)
+            cur_file = 'final_cycle' + str(num) + '.json'
+            os.system('cp ' + 'graph_decomposition/cycles/' + cur_file + ' ./CLI_examples' )
+            import_file = 'CLI_examples/'+cur_file
+            print(import_file)
+            with open(import_file) as f:
+                mapper_graph = json.load(f)
+                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
+        elif os.path.isfile('graph_decomposition/paths/final_path0.json'):
+            os.system('rm '+cur_file)
+            cur_file = 'final_path0.json'
+            os.system('cp ' + 'graph_decomposition/paths/' + cur_file + ' ./CLI_examples' )
+            import_file = './CLI_examples/'+cur_file
+            with open(import_file) as f:
+                mapper_graph = json.load(f)
+                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
+            
+    if 'path' in cur_file:
+        temp = cur_file
+        temp = temp.replace('path','')
+        temp = temp.replace('.json','')
+        temp = temp.replace('final_','')
+        temp = temp.replace('CLI_examples/','')
+        print("DEBUG: ",temp)
+        num = int(temp)
+        num=num+1
+        to_look = 'graph_decomposition/paths/final_path' + str(num) + '.json'
+        if os.path.isfile(to_look):
+            os.system('rm '+cur_file)
+            cur_file = 'final_path' + str(num) + '.json'
+            os.system('cp ' + 'graph_decomposition/paths/' + cur_file + ' ./CLI_examples' )
+            import_file = 'CLI_examples/'+cur_file
+            print(import_file)
+            with open(import_file) as f:
+                mapper_graph = json.load(f)
+                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
+        elif os.path.isfile('CLI_examples/original.json'):
+            os.system('rm '+cur_file)
+            os.system('mv CLI_examples/original.json ' + original)
+            cur_file = original.replace('CLI_examples/','')
+            import_file = './CLI_examples/'+cur_file
+            with open(import_file) as f:
+                mapper_graph = json.load(f)
+                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
+
+
+@app.route('/reset', methods=['POST','GET'])
+def reset():
+    if os.path.isdir('./graph_decomposition/stars'):
+        shutil.rmtree('./graph_decomposition/stars')
+    if os.path.isdir('./graph_decomposition/cycles'):
+        shutil.rmtree('./graph_decomposition/cycles')
+    if os.path.isdir('./graph_decomposition/paths'):
+        shutil.rmtree('./graph_decomposition/paths')
+    
+    if os.path.isfile('./CLI_examples/original.json'):
+        os.system('mv CLI_examples/original.json ' + original)
+
+
+    with open(original) as f:
+        mapper_graph = json.load(f)
+
+    return jsonify(mapper_graph,original)
+
+
+
+

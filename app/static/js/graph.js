@@ -1,22 +1,17 @@
 class Graph{
-    constructor(graph_data, col_keys, connected_components, categorical_cols, other_cols=undefined){
+    constructor(graph_data, col_keys, connected_components, categorical_cols, other_cols=undefined,file_name){
         this.nodes = graph_data.nodes;
         this.links = graph_data.links;
         this.col_keys = col_keys;
-        console.log("DEBUG: ",col_keys);
         this.connected_components = {};
+        this.file_name = file_name;
         for(let i=0; i<connected_components.length; i++){
             this.connected_components["cluster"+i] = connected_components[i];
         }
         this.categorical_cols = categorical_cols;
         this.other_cols = other_cols;
-        console.log("categorical cols", this.categorical_cols)
         this.assign_cc2node();
         this.find_neighbor_nodes();
-        console.log(this.nodes)
-        console.log(this.links)
-        console.log(this.col_keys)
-        console.log(this.connected_components)
         this.clear_mapper();
         // init graph container
         this.width = $(d3.select(".viewer-graph__graph").node()).width();
@@ -33,7 +28,6 @@ class Graph{
             .attr("id","graph-label-group");
 
         d3.select(".sidebar-container").style("height", this.height)
-            
         // histogram SVG
         this.hist_margin = {"top":15, "left":10, "between":20, "bar_height":5};
         this.hist_width = $(d3.select("#workspace-histogram").node()).width();
@@ -69,7 +63,7 @@ class Graph{
 
         this.color_functions();
         this.size_functions();
-        this.select_view();
+        //this.select_view();
         this.draw_mapper();
         this.selection_nodes();
     }
@@ -312,9 +306,11 @@ class Graph{
         this.nodes.forEach(node=>{
             node.neighbor_nodes = [];
         })
+        let ids = []
+        this.nodes.forEach(node=>ids.push(node.id))
         this.links.forEach(link=>{
-            this.nodes[link.source-1].neighbor_nodes.push(link.target.toString());
-            this.nodes[link.target-1].neighbor_nodes.push(link.source.toString());
+            this.nodes[ids.indexOf(link.source.toString())].neighbor_nodes.push(link.target.toString());
+            this.nodes[ids.indexOf(link.target.toString())].neighbor_nodes.push(link.source.toString());
         })
     }
 
@@ -397,6 +393,10 @@ class Graph{
             .on("click", ()=>{
                 this.select_component();
             })
+        d3.select("#next")
+            .on("click", ()=>{
+                swap_decomposition(this.file_name);
+            })
     }
 
     select_node(){
@@ -451,21 +451,29 @@ class Graph{
     }
 
     select_view(){
-        this.make_all_visible();
-        this.selected_nodes = [];
-        d3.select("#unselect-view").classed("selected", true);
-        this.if_select_node = false;
-        d3.select("#select-node").classed("selected", false);
-        this.if_select_cluster = false;
-        d3.select("#select-cluster").classed("selected", false);
-        this.if_select_path = false;
-        d3.select("#select-path").classed("selected", false);
-        d3.selectAll(".viewer-graph__vertex").classed("selected", false);
-        this.remove_hist();
-        this.unhighlight_all();
-        this.if_select_chem = false
-        this.if_select_component = false
-        d3.select('#chemicalSVG').selectAll('*').remove();
+        if (!this.file_name.includes('cycle') && !this.file_name.includes('star') && !this.file_name.includes('path'))
+        {
+            this.make_all_visible();
+            this.selected_nodes = [];
+            d3.select("#unselect-view").classed("selected", true);
+            this.if_select_node = false;
+            d3.select("#select-node").classed("selected", false);
+            this.if_select_cluster = false;
+            d3.select("#select-cluster").classed("selected", false);
+            this.if_select_path = false;
+            d3.select("#select-path").classed("selected", false);
+            d3.selectAll(".viewer-graph__vertex").classed("selected", false);
+            this.remove_hist();
+            this.unhighlight_all();
+            this.if_select_chem = false
+            this.if_select_component = false
+            d3.select('#chemicalSVG').selectAll('*').remove();
+        }
+        else{
+
+            console.log("CHECK_RESET");
+            reset();
+        }
 
     }
 
@@ -754,6 +762,7 @@ class Graph{
                 else if(this.if_select_component){
                     this.unhighlight_selectable();
                     let cluster = this.connected_components[d.clusterId];
+                    send_component(d.clusterId,this.file_name);
                     if(this.selected_nodes.indexOf(d.id)===-1){
                         this.make_all_hidden();
                         let temp1 = 0;
@@ -772,7 +781,9 @@ class Graph{
                         }
                             
                             //cluster.forEach(node2=> d3.select('#link'+ node1.toString()+'_'+node2.toString()).style("visibility","visible"))
-                    } 
+                    }
+
+                    
                 }
                 else if(this.if_select_cluster){
                     this.unhighlight_selectable();
