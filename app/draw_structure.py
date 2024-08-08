@@ -9,6 +9,9 @@ from PIL import ImageDraw
 import linecache
 import base64
 from PIL import ImageFont
+from rdkit.Chem import BRICS
+import numpy as np
+import pandas as pd
 
 def draw_chem(vertices,struct_col,scaffold_col):
     images = {"success":1}
@@ -46,3 +49,21 @@ def draw_chem(vertices,struct_col,scaffold_col):
                 images[count] = {'image':base64.b64encode(img_file.read()).decode("utf-8"),'group':j,'vertex':i}
             count = count + 1
     return images
+
+
+def get_fragments(vertices,struct_col):
+    images = {"success":1}
+    count = 0
+    lst = []
+    for i in range(len(vertices)):
+        vertices[i] = int(vertices[i])
+        line = linecache.getline("./CLI_examples/processed_data.csv", vertices[i]+2)
+        structure = line.split(',')[struct_col]
+        mol = Chem.MolFromSmiles(structure)
+        pieces = [Chem.MolFromSmiles(x) for x in BRICS.BRICSDecompose(mol)]
+        lst = lst + pieces
+    
+    pieces = [Chem.MolToSmiles(i) for i in lst]
+    pieces = np.array(pieces)
+    print(pd.value_counts(pieces)[:-5])
+

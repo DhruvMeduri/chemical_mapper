@@ -2,6 +2,8 @@ import json
 from graph_decomposition import Graph
 import os
 import shutil
+import linecache
+import csv
 
 # First this file needs the json file of the single component
 def extract_comp(c_id,file_name):
@@ -64,9 +66,50 @@ def decomposition(filename):
     dic = create_adjacency(filename)
     obj = Graph.graph(dic)
     obj.find_cycles()
+    file = open(filename)
+    data = json.load(file)
+    # Create id_list
+    ids = []
+    for i in data['mapper']['nodes']:
+        ids.append(i['id'])
+    # To create the csv files
+    if os.path.exists("./graph_decomposition/CSV"):
+        shutil.rmtree("./graph_decomposition/CSV")
+
+    os.mkdir('./graph_decomposition/CSV')
+    title = ['substructure','node_number','smiles']
+    final_csv = [title]
+    for cycle in obj.cycles:
+        for i in range(len(cycle)-1):
+            node = cycle[i]
+            for vertex in data['mapper']['nodes'][ids.index(str(node))]['vertices']:
+                line = linecache.getline("./CLI_examples/processed_data.csv", vertex+2)
+                struc = line.split(',')[-1]
+                struc = struc.replace('"','')
+                print(struc)
+                final_csv.append(['cycle_'+str(i),node,struc])
+
+    with open('./graph_decomposition/CSV/cycles.csv', 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(final_csv)
     
     obj.find_stars()
+    final_csv = [title]
+    for star in obj.stars:
+        for i in range(len(star)-1):
+            node = star[i]
+            for vertex in data['mapper']['nodes'][ids.index(str(node))]['vertices']:
+                line = linecache.getline("./CLI_examples/processed_data.csv", vertex+2)
+                struc = line.split(',')[-1]
+                struc = struc.replace('"','')
+                final_csv.append(['star_'+str(i),node,struc])
 
+    with open('./graph_decomposition/CSV/stars.csv', 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(final_csv)
+
+    print("CSV DONE")
+    
     for i in obj.cycles:
         for j in i:
             obj.del_node(j)
@@ -76,8 +119,6 @@ def decomposition(filename):
             obj.del_node(j)
 
     obj.branch_decomposition()
-
-    print("CYCLES: ",obj.cycles)
 
     # Now coming to writing it into seperate .json files
     file = open(filename)

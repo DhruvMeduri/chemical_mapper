@@ -745,6 +745,7 @@ def send_structure():
    struct_col = -1
    scaffold_col = -2
    images = draw_structure.draw_chem(vertices,struct_col,scaffold_col)
+   draw_structure.get_fragments(vertices,struct_col)
    
    return json.dumps(images)
 
@@ -794,7 +795,7 @@ def swap_load():
                 return jsonify(mapper_graph,'CLI_examples/'+cur_file)
             
         elif os.path.isfile('graph_decomposition/cycles/final_cycle0.json'):
-            os.system('rm '+cur_file)
+            os.system('mv '+cur_file + " CLI_examples/original.json")
             cur_file = 'final_cycle0.json'
             os.system('cp ' + 'graph_decomposition/cycles/' + cur_file + ' ./CLI_examples' )
             import_file = './CLI_examples/'+cur_file
@@ -804,7 +805,7 @@ def swap_load():
             
 
         elif os.path.isfile('graph_decomposition/paths/final_path0.json'):
-            os.system('rm '+cur_file)
+            os.system('mv '+cur_file + " CLI_examples/original.json")
             cur_file = 'final_path0.json'
             os.system('cp ' + 'graph_decomposition/paths/' + cur_file + ' ./CLI_examples' )
             import_file = './CLI_examples/'+cur_file
