@@ -862,15 +862,15 @@ def swap_load():
             with open(import_file) as f:
                 mapper_graph = json.load(f)
                 return jsonify(mapper_graph,'CLI_examples/'+cur_file)
-        elif os.path.isfile('graph_decomposition/paths/final_path0.json'):
+        elif os.path.isfile('CLI_examples/original.json'):
             os.system('rm '+cur_file)
-            cur_file = 'final_path0.json'
-            os.system('cp ' + 'graph_decomposition/paths/' + cur_file + ' ./CLI_examples' )
+            os.system('mv CLI_examples/original.json ' + original)
+            cur_file = original.replace('CLI_examples/','')
             import_file = './CLI_examples/'+cur_file
             with open(import_file) as f:
                 mapper_graph = json.load(f)
                 return jsonify(mapper_graph,'CLI_examples/'+cur_file)
-            
+    '''       
     if 'path' in cur_file:
         temp = cur_file
         temp = temp.replace('path','')
@@ -898,7 +898,7 @@ def swap_load():
             with open(import_file) as f:
                 mapper_graph = json.load(f)
                 return jsonify(mapper_graph,'CLI_examples/'+cur_file)
-
+    '''
 
 @app.route('/reset', methods=['POST','GET'])
 def reset():

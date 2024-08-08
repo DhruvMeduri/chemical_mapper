@@ -109,7 +109,9 @@ def decomposition(filename):
         writer.writerows(final_csv)
 
     print("CSV DONE")
-    
+    print("CYCLES: ", obj.cycles)
+
+    '''
     for i in obj.cycles:
         for j in i:
             obj.del_node(j)
@@ -117,13 +119,11 @@ def decomposition(filename):
     for i in obj.stars:
         for j in i:
             obj.del_node(j)
-
     obj.branch_decomposition()
-
+    '''
     # Now coming to writing it into seperate .json files
     file = open(filename)
     data = json.load(file)
-
     # Let us start with stars
     if os.path.exists("./graph_decomposition/stars"):
         shutil.rmtree("./graph_decomposition/stars")
@@ -210,7 +210,7 @@ def decomposition(filename):
 
         count = count + 1
 
-
+'''
     count = 0
 
     # Let us start with paths
@@ -253,7 +253,7 @@ def decomposition(filename):
 
         count = count + 1
 
-
+'''
 
 
 

@@ -191,9 +191,10 @@ class graph
 
             for(auto i = adj_list[traversed.top()].begin();i < adj_list[traversed.top()].end();i++)
             {
-                if(visited[*i]==0)
+                if(visited[*i]==0 && adj_list[traversed.top()].size()>2)
                 {
-                    if(path.size()>0)
+                    
+                    if(path.size()>2)
                     {
                         paths.push_back(path);
                     }
@@ -203,7 +204,17 @@ class graph
                     flag = 1;
                     break;
                 }
+
+                else if(visited[*i]==0 && adj_list[traversed.top()].size()<=2)
+                {
+                        
+                    traversed.push(*i);
+                    visited[*i]=1;
+                    flag = 1;
+                    break;
+                }
             }
+            
             if(flag==0)
             {
             path.push_back(traversed.top());
@@ -211,7 +222,10 @@ class graph
             traversed.pop();
             if(traversed.empty())
             {
-                paths.push_back(path);
+                if(path.size()>0)
+                {
+                    paths.push_back(path);
+                }
                 path.clear();
             }
             }
