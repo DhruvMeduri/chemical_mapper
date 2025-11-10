@@ -30,13 +30,14 @@
                 <button id="select-cluster" class="viewer-graph__toolbar-item btn">Select Clusters</button>
                 <button id="select-path" class="viewer-graph__toolbar-item btn">Select Path</button>
                 <button id="chem-viewer" class="viewer-graph__toolbar-item btn">Chemical Viewer</button>
+                <button id="geometry" class="viewer-graph__toolbar-item btn">Geometry</button>
                 <button id="component" class="viewer-graph__toolbar-item btn">Component Viewer</button>
                 <button id="next" class="viewer-graph__toolbar-item btn">Next</button>
             </div>
-            <div class="viewer-graph__graph">
+            <div class="viewer-graph__graph" style="height:550px">
                 <svg id="graphSVG"></svg>
             </div>
-            <div id="chemical-viewer" style="height:275px">
+            <div id="chemical-viewer" style="height:180px">
               <svg id="chemicalSVG"></svg>
           </div>
           </div>
@@ -149,6 +150,19 @@
                     </div>
                   </div>
                 </div>
+
+                <div id="graph_vis" class="parameter-group">
+                  <div class="row" style="padding-top:0px; padding-bottom:10px;">
+                    <div class="col-sm-6 ui-form-range__label" style="padding-top:5px;">Layout</div>
+                    <div class="col-sm-6" id="layout_container"> 
+                      <select class="custom-select"  name="layout_vis" id="layout">
+                        <option>Force Directed</option>
+                        <option>L2 norm</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="parameter-group" id="clustering-paramters">
                   <div id="clustering-paramters-inner">
 

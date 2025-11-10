@@ -65,13 +65,16 @@ def decomposition(filename):
     # Take input the graph component from the json file
     dic = create_adjacency(filename)
     obj = Graph.graph(dic)
-    obj.find_cycles()
     file = open(filename)
     data = json.load(file)
     # Create id_list
     ids = []
     for i in data['mapper']['nodes']:
         ids.append(i['id'])
+
+    obj.find_stars()
+    obj.find_cycles()
+    '''
     # To create the csv files
     if os.path.exists("./graph_decomposition/CSV"):
         shutil.rmtree("./graph_decomposition/CSV")
@@ -107,8 +110,8 @@ def decomposition(filename):
     with open('./graph_decomposition/CSV/stars.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(final_csv)
-
-    print("CSV DONE")
+    '''
+    print("CSV SKIPPED")
     print("CYCLES: ", obj.cycles)
 
     '''

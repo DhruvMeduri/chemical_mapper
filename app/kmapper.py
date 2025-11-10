@@ -515,7 +515,7 @@ class KeplerMapper(object):
 
         # Cover scheme defines a list of elements
         bins = self.cover.fit(lens)
-        print("DEBUG: ",self.cover)
+
 
         # Algo's like K-Means, have a set number of clusters. We need this number
         # to adjust for the minimal number of samples inside an interval before

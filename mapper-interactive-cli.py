@@ -7,7 +7,7 @@ import re
 import networkx as nx
 import app.views as MI  # MapperInteractive
 from app import kmapper as km
-from app import cover as km_from flask import render_template,request, url_for, jsonify, redirect, Response, send_from_direcover
+from app import cover as km_cover
 from sklearn.cluster import DBSCAN, MeanShift, AgglomerativeClustering
 import json
 import itertools
@@ -91,6 +91,7 @@ def wrangle_csv(df):
     newdf1 = df.to_numpy()[0:]
     rows2delete = np.array([])
     cols2delete = []
+    print(newdf1)
 
     # ### Delete missing values ###
     for i in range(len(cols)):
@@ -131,6 +132,7 @@ def wrangle_csv(df):
                 cols_categorical_idx.append(i)
             else:
                 cols_others_idx.append(i)
+    print("ULTIMATE: ",cols_others_idx)
     newdf3 = newdf2[:, cols_numerical_idx+cols_categorical_idx+cols_others_idx]
     rows2delete = rows2delete.astype(int)
     newdf3 = np.delete(newdf3, rows2delete, axis=0)
@@ -169,43 +171,19 @@ def for_label_scaffold(filename,array,scaffold_col,label_col):
             categorical["scaffold"][scaffold] = categorical["scaffold"][scaffold] + 1   
     return categorical
 
-def MHFP6(array,size,struc_col):
-    # This gives a 0.5 approximation of the diameter of each cluster
-
-    mhfp_encoder = MHFPEncoder()
-    max1 = 0
-    print("SIZE OF CLUSTER: ",len(array))
-    k = min(len(array),25)
-
-    ref = random.choice(array)
-    line = linecache.getline(output_dir+'/processed_data.csv', ref+2)
-    struct = line.split(',')[struc_col]
-    ref = mhfp_encoder.encode(struct)
-    
-    r = random.sample(array,k)
-    for i in r:
+def mean_property(array, property_col,output_dir):
+    sum = 0
+    for i in array:
         line = linecache.getline(output_dir+'/processed_data.csv', i+2)
-        struct = line.split(',')[struc_col]
-        temp = mhfp_encoder.encode(struct)
-        max1 = max1 + mhfp_encoder.distance(temp,ref)
+        property = line.split(',')[property_col]
+        print(line.split(',')[-3])
+        property = property.replace('l','')
+        property = property.replace('\n','')
+        property = float(property)
+        sum = sum + property
+        
 
-    a = range(size)
-    max2 = 0
-    r = random.sample(a,k)
-
-    for i in r:
-        line = linecache.getline(output_dir+'/processed_data.csv', i+2)
-        struct = line.split(',')[struc_col]
-        temp = mhfp_encoder.encode(struct)
-        max2 =  mhfp_encoder.distance(temp,ref) + max2
-
-    print("AVGS: ",[max1/k,max2/k])
-    return [max1/k,max2/k]
-
-
-
-
-
+    return sum/len(array)
 
 def compute_cc(graph): 
     '''
@@ -298,6 +276,7 @@ if __name__ == '__main__':
     # Setup
     mkdir(output_dir)
     df = pd.read_csv(fname)
+    print(df)
     if preprocess_only:
         df = wrangle_csv(df)
         df.to_csv(join(output_dir, 'wrangled_data.csv'),index = False)
@@ -380,8 +359,10 @@ if __name__ == '__main__':
             "id_orignal": key,
             "size": len(g['nodes'][key]),
             "vertices": cluster,
+            #"avgs":{"MHFP6_avg":mean_property(cluster,-2,output_dir),"MHFP6_rand_avg":0},
             "avgs":{"MHFP6_avg":0,"MHFP6_rand_avg":0},
             "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster,scaffold_col,label_col)
+            #"categorical_cols_summary":{}
                         })
             i = i+1
         

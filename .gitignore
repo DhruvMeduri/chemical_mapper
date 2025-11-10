@@ -8,4 +8,6 @@ __pycache__
 /build/
 /local/
 /dist/
-
+*.csv
+*.json
+*.png

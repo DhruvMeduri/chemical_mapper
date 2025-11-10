@@ -307,6 +307,10 @@ def get_enhanced_graph():
                 node['categorical_cols_summary'][col] = data_categorical_i[col].value_counts().to_dict()
     print("classic",cov.intervals)
     print("xmeans",multipass_cover.intervals)
+    print("THIS WORKS:")
+    dic = {'mapper':mapper_result,'connected_components':connected_components,'categorical_cols':['Label','Scaffold'],'col_keys':all_cols}
+    with open('./CLI_examples/final.json', 'w') as fp:
+        json.dump(dic, fp)
     return jsonify(mapper=mapper_result, connected_components=connected_components, classic_cover=cov.intervals.tolist(), adaptive_cover=multipass_cover.intervals.tolist())
 
 def _parse_enhanced_graph(graph, data_array=[], if_cli=False):
@@ -740,13 +744,93 @@ def send_structure():
    from app import draw_structure
    selected_vertex_id = request.get_data().decode('utf-8')
    vertices = selected_vertex_id.split(',')
+   print(vertices)
    vertices = random.sample(vertices,min(100,len(vertices)))
    # Picking the right structure column
    struct_col = -1
    scaffold_col = -2
+   print("ULT DEBUG: ")
    images = draw_structure.draw_chem(vertices,struct_col,scaffold_col)
-   draw_structure.get_fragments(vertices,struct_col)
    
+   return json.dumps(images)
+
+from rdkit.Chem import MolFromSmiles, rdmolops
+from rdkit.Chem import AllChem, AddHs
+import numpy as np
+import json
+import linecache
+import matplotlib
+from matplotlib import pyplot as plt
+
+def mean_angle(m):
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+    from rdkit.Chem import rdMolTransforms
+    #m = Chem.MolFromSmiles('CCOC(=O)C(C#N)=NNc1ccc(S(=O)(=O)NC(C)=O)cc1')
+    AllChem.MMFFOptimizeMolecule(m)
+    conf = m.GetConformer()
+    count = 0
+    mean_angle = 0
+    for i in m.GetBonds():
+        for j in m.GetBonds():
+            if i.GetEndAtomIdx() == j.GetBeginAtomIdx():
+                count= count +1
+                mean_angle = mean_angle + rdMolTransforms.GetAngleDeg(conf, i.GetBeginAtomIdx(),i.GetEndAtomIdx(),j.GetEndAtomIdx())
+            elif i.GetEndAtomIdx() == j.GetEndAtomIdx() and i.GetBeginAtomIdx() != j.GetBeginAtomIdx():
+                count= count +1
+                mean_angle = mean_angle + rdMolTransforms.GetAngleDeg(conf, i.GetBeginAtomIdx(),i.GetEndAtomIdx(),j.GetBeginAtomIdx())
+            elif i.GetBeginAtomIdx() == j.GetBeginAtomIdx() and i.GetEndAtomIdx() != j.GetEndAtomIdx():
+                count= count +1
+                mean_angle = mean_angle + rdMolTransforms.GetAngleDeg(conf, i.GetEndAtomIdx(),i.GetBeginAtomIdx(),j.GetEndAtomIdx())
+            elif i.GetBeginAtomIdx() == j.GetEndAtomIdx():
+                count= count +1
+                mean_angle = mean_angle + rdMolTransforms.GetAngleDeg(conf, i.GetEndAtomIdx(),i.GetBeginAtomIdx(),j.GetBeginAtomIdx())
+
+    return mean_angle/count
+
+def mean_length(mol):
+    A=rdmolops.GetAdjacencyMatrix(mol)
+    AllChem.MMFFOptimizeMolecule(mol)
+    D=AllChem.Get3DDistanceMatrix(mol)
+    return np.mean(A*D)
+
+@app.route('/send_geometry', methods=['POST','GET'])
+def send_geometry():
+   import random
+   import base64
+   selected_vertex_id = request.get_data().decode('utf-8')
+   vertices = selected_vertex_id.split(',')
+   vertices = random.sample(vertices,min(1000,len(vertices)))
+   # Picking the right structure column
+   mean_length_arr = []
+   mean_angle_arr = []
+   images = {"success":1}
+   for j in vertices:
+        line = linecache.getline("./CLI_examples/processed_data.csv", int(j)+2)
+        # SMILES for methanol
+        smi = line.split(',')[-1]
+        print(smi)
+        mol=MolFromSmiles(smi)
+        mol=AddHs(mol)
+        if AllChem.EmbedMolecule(mol) > -1:
+            mean_length_arr.append(mean_length(mol))
+            mean_angle_arr.append(mean_angle(mol))
+   matplotlib.use('agg')
+   plt.boxplot(mean_length_arr,showmeans=True)
+   plt.gca().set_ylim([0,0.3])
+   plt.title("Bond Length")
+   plt.savefig('./app/sample.png')
+   with open("./app/sample.png", "rb") as img_file:
+        images[0] = {'image':base64.b64encode(img_file.read()).decode("utf-8"),'group':0,'vertex':0}
+   plt.clf()
+   plt.boxplot(mean_angle_arr,showmeans=True)
+   plt.gca().set_ylim([100,125])
+   plt.title("Bond Angle")
+   plt.savefig('./app/sample.png')
+   with open("./app/sample.png", "rb") as img_file:
+        images[1] = {'image':base64.b64encode(img_file.read()).decode("utf-8"),'group':1,'vertex':0}
+   plt.clf()
+
    return json.dumps(images)
 
 @app.route('/send_component', methods=['POST','GET'])
@@ -782,7 +866,6 @@ def for_KNN():
 # The order should be star, cycles and paths
 def swap_load():
     cur_file = request.get_data().decode('utf-8')
-    print("DEBUG: ",cur_file)
     if 'star' not in cur_file and 'cycle' not in cur_file and 'path' not in cur_file:
 
         if os.path.isfile('graph_decomposition/stars/final_star0.json'):
@@ -849,7 +932,6 @@ def swap_load():
         temp = temp.replace('.json','')
         temp = temp.replace('final_','')
         temp = temp.replace('CLI_examples/','')
-        print("DEBUG: ",temp)
         num = int(temp)
         num=num+1
         to_look = 'graph_decomposition/cycles/final_cycle' + str(num) + '.json'
@@ -870,35 +952,7 @@ def swap_load():
             with open(import_file) as f:
                 mapper_graph = json.load(f)
                 return jsonify(mapper_graph,'CLI_examples/'+cur_file)
-    '''       
-    if 'path' in cur_file:
-        temp = cur_file
-        temp = temp.replace('path','')
-        temp = temp.replace('.json','')
-        temp = temp.replace('final_','')
-        temp = temp.replace('CLI_examples/','')
-        print("DEBUG: ",temp)
-        num = int(temp)
-        num=num+1
-        to_look = 'graph_decomposition/paths/final_path' + str(num) + '.json'
-        if os.path.isfile(to_look):
-            os.system('rm '+cur_file)
-            cur_file = 'final_path' + str(num) + '.json'
-            os.system('cp ' + 'graph_decomposition/paths/' + cur_file + ' ./CLI_examples' )
-            import_file = 'CLI_examples/'+cur_file
-            print(import_file)
-            with open(import_file) as f:
-                mapper_graph = json.load(f)
-                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
-        elif os.path.isfile('CLI_examples/original.json'):
-            os.system('rm '+cur_file)
-            os.system('mv CLI_examples/original.json ' + original)
-            cur_file = original.replace('CLI_examples/','')
-            import_file = './CLI_examples/'+cur_file
-            with open(import_file) as f:
-                mapper_graph = json.load(f)
-                return jsonify(mapper_graph,'CLI_examples/'+cur_file)
-    '''
+
 
 @app.route('/reset', methods=['POST','GET'])
 def reset():
