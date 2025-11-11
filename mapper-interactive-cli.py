@@ -17,6 +17,8 @@ from tqdm import tqdm
 from sklearn.preprocessing import MinMaxScaler, normalize
 import csv
 from mhfp.encoder import MHFPEncoder
+import l2
+from anchored_vis import anchor
 
 def mkdir(f):
     if not os.path.exists(f):
@@ -132,7 +134,6 @@ def wrangle_csv(df):
                 cols_categorical_idx.append(i)
             else:
                 cols_others_idx.append(i)
-    print("ULTIMATE: ",cols_others_idx)
     newdf3 = newdf2[:, cols_numerical_idx+cols_categorical_idx+cols_others_idx]
     rows2delete = rows2delete.astype(int)
     newdf3 = np.delete(newdf3, rows2delete, axis=0)
@@ -216,6 +217,9 @@ def normalize_data(X, norm_type):
     return X_prime
 
 
+
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Mapper Interactive Command Line Tool. \nSee CLI_README.md for details.')
@@ -288,7 +292,6 @@ if __name__ == '__main__':
     df_np = df.to_numpy()
     df_np = np.float32(df_np)#Very important line
     df_np = normalize_data(df_np, norm_type=norm)
-    #print("CHECK: ",df_np)
     overlaps = extract_range(overlaps_str)
     intervals = extract_range(intervals_str)
     filter_fn = get_filter_fn(df_np, filter_str, filter_params=None)
@@ -326,8 +329,6 @@ if __name__ == '__main__':
 
     with open(join(output_dir, 'metadata.json'), 'w+') as fp:
         json.dump(meta, fp)
-
-
     # Picking the right scaffold column
     col_names = linecache.getline(output_dir+'/processed_data.csv', 1)
     check = col_names.split(',')[-2]
@@ -335,7 +336,6 @@ if __name__ == '__main__':
     scaffold_col = -2
     struct_col = -1
     label_col = -3
-
 
     for overlap, interval in tqdm(itertools.product(overlaps, intervals)):
 
@@ -379,4 +379,6 @@ if __name__ == '__main__':
     to_dump = {'mapper':data,'col_keys':['MHFP6_avg','MHFP6_rand_avg'],'connected_components':connected_components,'categorical_cols':['label','scaffold']}
     with open(output_dir+'/final.json', 'w') as fp:
             json.dump(to_dump, fp)
+    l2.l2(output_dir+'/final.json')
+    anchor.anchor(output_dir+'/final.json')
     print("COMPLETE")

@@ -1577,14 +1577,6 @@ class Graph{
                     function dragged(d) {
                         d.fx = d3.event.x;
                         d.fy = d3.event.y;
-                        //d.y = d3.mouse(this.parentNode)[1];
-                        //d3.select(`#group${d.id}`).attr("transform", `translate(${d.x}, ${d.y})`)
-                        //d.links.source.forEach(eid=>{
-                        //    d3.select(`#${eid}`).attr("x1", d.x).attr("y1", d.y);
-                        //});
-                        //d.links.target.forEach(eid=>{
-                        //    d3.select(`#${eid}`).attr("x2", d.x).attr("y2", d.y);
-                        //});
                     }
                 
                     function dragended(d) {
@@ -1719,12 +1711,6 @@ class Graph{
             })
     }
 
-    // unfill_vertex(){
-    //     d3.selectAll(".pie-group").remove();
-    //     d3.selectAll(".viewer-graph__vertex").style("fill", "white");
-    //     d3.selectAll(".viewer-graph__label").style("fill", "#555");
-    // }
-
     fill_vertex_categorical(col_key){
         d3.selectAll(".viewer-graph__pie").remove();
         d3.selectAll(".viewer-graph__vertex").attr("fill", "#fff");
@@ -1750,15 +1736,6 @@ class Graph{
         }
 
 
-        
-        // // get # catogories
-        // this.nodes.forEach(node=>{
-        //     for(let c in node.categorical_cols_summary[col_key]){
-        //         if(Object.keys(color_dict).indexOf(c)===-1){
-        //             color_dict[c] = "";
-        //         }
-        //     }
-        // })
         let idx = 0;
 
         // let that = this;
@@ -1791,15 +1768,7 @@ class Graph{
                 p.value = node.categorical_cols_summary[col_key][c];
                 p.node_id = node.id;
                 p.color = color_dict[c];
-                // if(Object.keys(color_dict).indexOf(c)!=-1){
-                // // if(color_dict[c]!=""){
-                //     p.color = color_dict[c];
-                // } else {
-                //     p.color = color_categorical(idx);
-                //     // p.color = d3.interpolateRainbow((idx+1)/Object.keys(color_dict).length);
-                //     idx += 1;
-                //     color_dict[c] = p.color;
-                // }
+    
                 pie_data.push(p);
             }
             return pie_data;
@@ -1819,10 +1788,19 @@ class Graph{
             d3.select('#graph-link-group').selectAll('*').remove();
             d3.select('#graph-node-group').selectAll('*').remove();
             d3.select('#graph-label-group').selectAll('*').remove();
-            that.draw_mapper_anchored();
+            that.draw_mapper_l2();
             console.log(that.nodes)
 
         }
+        if(layout=='Anchored')
+            {
+                d3.select('#graph-link-group').selectAll('*').remove();
+                d3.select('#graph-node-group').selectAll('*').remove();
+                d3.select('#graph-label-group').selectAll('*').remove();
+                that.draw_mapper_anchored();
+                console.log(that.nodes)
+    
+            }
         if(layout=='Force Directed')
         {
             d3.select("#graph-axis-group").remove();

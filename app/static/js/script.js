@@ -312,51 +312,15 @@ d3.select("#mapper_loader")
                 data: JSON.stringify(that.mapper_data)
             }, function(res){
                 console.log(res);
-                that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, that.side_bar.categorical_cols, that.side_bar.other_cols);
-                that.regression = new Regression(that.side_bar.all_cols);
+                //res = JSON.parse(res);
+                that.graph = new Graph(res.mapper, res.col_keys, res.connected_components, res.categorical_cols, that.side_bar.other_cols, './CLI_examples/final.json');
+                //that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, that.side_bar.categorical_cols, that.side_bar.other_cols,'./CLI_examples/final.json');
+                //that.regression = new Regression(that.side_bar.all_cols);
             })
         } else{
             alert("Please import a dataset first!");
         } 
     })
-
-//Commented because not used in chemical mapper project.
-// d3.select("#enhanced_mapper_loader")
-//     .on("click", ()=>{
-//         if(that.side_bar.all_cols.length>0){
-//             if(that.side_bar.config.filter.length>1){
-//                 alert("Only 1D enhanced mapper is implemented.")
-//             } else{
-//                 that.get_mapper_parameters();
-//                 that.get_enhanced_mapper_parameters();
-//                 console.log(that.mapper_data)
-//                 $.post("/enhanced_mapper_loader",{
-//                     data: JSON.stringify(that.mapper_data)
-//                 }, function(res){
-//                     console.log(res);
-//                     that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, that.side_bar.categorical_cols, that.side_bar.other_cols);
-//                     that.regression = new Regression(that.side_bar.all_cols);
-//                     //that.side_bar.draw_adaptive_cover(res.classic_cover, res.adaptive_cover);
-//                 })
-//             }
-//         } else{
-//             alert("Please import a dataset first!");
-//         } 
-//     })
-
-//Commented because not used in chemical mapper project.
-// d3.select("#linear_regression")
-//     .on("click", ()=>{
-//         if(that.graph){
-//             let selected_nodes = [...that.graph.selected_nodes];
-//             $.post("/linear_regression", {
-//                 data: JSON.stringify({"nodes":selected_nodes, "dep_var":that.regression.dependent_var, "indep_vars":that.regression.indep_vars_selected})
-//             }, function(res){
-//                 console.log(res)
-//                 that.regression.draw_reg_result(res);
-//             })
-//         }
-//     })
 
 d3.select("#pca")
     .on("click", ()=>{
@@ -557,3 +521,41 @@ function get_mapper_parameters(){
 //     let sa_type = sa_dropdown.options[sa_dropdown.selectedIndex].text;
 //     that.mapper_data.enhanced_config.method = sa_type;
 // }
+
+//Commented because not used in chemical mapper project.
+// d3.select("#enhanced_mapper_loader")
+//     .on("click", ()=>{
+//         if(that.side_bar.all_cols.length>0){
+//             if(that.side_bar.config.filter.length>1){
+//                 alert("Only 1D enhanced mapper is implemented.")
+//             } else{
+//                 that.get_mapper_parameters();
+//                 that.get_enhanced_mapper_parameters();
+//                 console.log(that.mapper_data)
+//                 $.post("/enhanced_mapper_loader",{
+//                     data: JSON.stringify(that.mapper_data)
+//                 }, function(res){
+//                     console.log(res);
+//                     that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, that.side_bar.categorical_cols, that.side_bar.other_cols);
+//                     that.regression = new Regression(that.side_bar.all_cols);
+//                     //that.side_bar.draw_adaptive_cover(res.classic_cover, res.adaptive_cover);
+//                 })
+//             }
+//         } else{
+//             alert("Please import a dataset first!");
+//         } 
+//     })
+
+//Commented because not used in chemical mapper project.
+// d3.select("#linear_regression")
+//     .on("click", ()=>{
+//         if(that.graph){
+//             let selected_nodes = [...that.graph.selected_nodes];
+//             $.post("/linear_regression", {
+//                 data: JSON.stringify({"nodes":selected_nodes, "dep_var":that.regression.dependent_var, "indep_vars":that.regression.indep_vars_selected})
+//             }, function(res){
+//                 console.log(res)
+//                 that.regression.draw_reg_result(res);
+//             })
+//         }
+//     })

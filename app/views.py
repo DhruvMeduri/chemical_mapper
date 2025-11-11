@@ -20,6 +20,8 @@ from sklearn import cluster
 import networkx as nx
 import sklearn
 from graph_decomposition import decompose
+import l2
+from anchored_vis import anchor
 # from sklearn.linear_model import LinearRegression
 try:
     import statsmodels.api as sm
@@ -157,177 +159,12 @@ def get_graph():
         data = sklearn.preprocessing.normalize(data, norm=norm_type, axis=0, copy=False, return_norm=False)
     data = pd.DataFrame(data, columns = all_cols)
     mapper_result = run_mapper(data, selected_cols, interval, overlap, clustering_alg, clustering_alg_params, filter_function, filter_parameters)
-    if len(categorical_cols) > 0:
-        for node in mapper_result['nodes']:
-            vertices = node['vertices']
-            data_categorical_i = data_categorical.iloc[vertices]
-            node['categorical_cols_summary'] = {}
-            for col in categorical_cols:
-                node['categorical_cols_summary'][col] = data_categorical_i[col].value_counts().to_dict()
-    connected_components = compute_cc(mapper_result)
-    print(mapper_result)
-    return jsonify(mapper=mapper_result, connected_components=connected_components)
 
-#Commented because not used in chemical mapper project
-# @app.route('/enhanced_mapper_loader', methods=['POST','GET'])
-# def get_enhanced_graph():
-#     mapper_data = request.form.get('data')
-#     mapper_data = json.loads(mapper_data)
-#     selected_cols = mapper_data['cols']
-#     all_cols = mapper_data['all_cols'] # all numerical cols
-#     categorical_cols = mapper_data['categorical_cols']
-#     data = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv")
-#     data_categorical = data[categorical_cols]
-#     data = data[all_cols]
+    with open('./CLI_examples/final.json') as f:
+        mapper_graph = json.load(f)
+        return jsonify(mapper_graph)
 
-#     config = mapper_data["config"]
-#     norm_type = config["norm_type"]
-#     clustering_alg = config["clustering_alg"]
-#     clustering_alg_params = config["clustering_alg_params"]
-#     filter_parameters = config
-#     enhanced_parameters = mapper_data["enhanced_config"]
 
-#     filter_function = config["filter"]
-#     if len(filter_function) == 1:
-#         interval = int(config["interval1"])
-#         overlap = float(config["overlap1"]) / 100
-#     elif len(filter_function) == 2:
-#         interval = [int(config["interval1"]), int(config["interval2"])]
-#         overlap = [float(config["overlap1"])/100, float(config["overlap2"])/100]
-
-#     if norm_type == "none":
-#         pass
-#     elif norm_type == "0-1": # axis=0, min-max norm for each column
-#         scaler = MinMaxScaler()
-#         data = scaler.fit_transform(data)
-#     else:
-#         data = sklearn.preprocessing.normalize(data, norm=norm_type, axis=0, copy=False, return_norm=False)
-#     data = pd.DataFrame(data, columns = all_cols)
-
-#     mapper = KeplerMapper()
-#     if len(selected_cols) == 1:
-#         data_new = np.array(data[selected_cols[0]]).reshape(-1,1)
-#     else:
-#         data_new = np.array(data[selected_cols])
-
-#     if len(filter_function) == 1:
-#         f = filter_function[0]
-#         if f in data.columns:
-#             lens = data[f]
-#         else:
-#             lens = compute_lens(f, data_new, mapper, filter_parameters)
-        
-#     elif len(filter_function) == 2:
-#         lens = []
-#         for f in filter_function:
-#             if f in data.columns:
-#                 lens_f = np.array(data[f]).reshape(-1,1)
-#             else:
-#                 lens_f = compute_lens(f, data_new, mapper, filter_parameters)
-#             lens.append(lens_f)
-#         lens = np.concatenate((lens[0], lens[1]), axis=1)
-
-#     if clustering_alg == "DBSCAN":
-#         clusterer = cluster.DBSCAN(eps=float(clustering_alg_params["eps"]), min_samples=int(clustering_alg_params["min_samples"]))
-#     elif clustering_alg == "Agglomerative Clustering":
-#         clusterer = cluster.AgglomerativeClustering(n_clusters=None, linkage=clustering_alg_params["linkage"], distance_threshold=float(clustering_alg_params["dist"]))
-#     elif clustering_alg == "Mean Shift":
-#         clusterer = cluster.MeanShift(bandwidth=float(clustering_alg_params["bandwidth"]))
-
-#     iterations = enhanced_parameters['max_iter']
-#     max_intervals = 100
-#     delta = enhanced_parameters['delta']
-#     BIC = enhanced_parameters['bic']
-#     method = enhanced_parameters['method'] # method can be: BFS, DFS, randomized
-
-#     print("iterations", iterations)
-#     print("delta", delta)
-#     print("method", method)
-
-#     cov = enhanced_Cover(interval, overlap)
-#     g_classic = generate_mapper_graph(data_new, lens, cov, clusterer, refit_cover = True)
-
-#     multipass_cover = mapper_xmeans_centroid(data_new, lens, enhanced_Cover(interval, overlap), clusterer, iterations, max_intervals, BIC=BIC, delta=delta, method=method)
-
-#     g_multipass = generate_mapper_graph(data_new, lens, multipass_cover, clusterer, refit_cover=False)
-#     mapper_result = _parse_enhanced_graph(g_multipass, data)
-#     connected_components = compute_cc(mapper_result)
-
-#     if len(categorical_cols) > 0:
-#         for node in mapper_result['nodes']:
-#             vertices = node['vertices']
-#             data_categorical_i = data_categorical.iloc[vertices]
-#             node['categorical_cols_summary'] = {}
-#             for col in categorical_cols:
-#                 node['categorical_cols_summary'][col] = data_categorical_i[col].value_counts().to_dict()
-#     print("classic",cov.intervals)
-#     print("xmeans",multipass_cover.intervals)
-#     print("THIS WORKS:")
-#     dic = {'mapper':mapper_result,'connected_components':connected_components,'categorical_cols':['Label','Scaffold'],'col_keys':all_cols}
-#     with open('./CLI_examples/final.json', 'w') as fp:
-#         json.dump(dic, fp)
-#     return jsonify(mapper=mapper_result, connected_components=connected_components, classic_cover=cov.intervals.tolist(), adaptive_cover=multipass_cover.intervals.tolist())
-
-# def _parse_enhanced_graph(graph, data_array=[], if_cli=False):
-#     if len(data_array)>0:
-#         col_names = data_array.columns
-#         data_array = np.array(data_array)
-#     data = {"nodes":[], "links":[]}
-
-#     nodes_detail = {}
-#     name2id = {}
-#     i = 1
-#     for node in graph.nodes:
-#         node_name = get_node_id(node)
-#         name2id[node_name] = i
-#         cluster = node.members.tolist()
-#         nodes_detail[i] = cluster
-#         if len(data_array)>0:
-#             cluster_data = data_array[cluster]
-#             cluster_avg = np.mean(cluster_data, axis=0)
-#             cluster_avg_dict = {}
-#             for j in range(len(col_names)):
-#                 cluster_avg_dict[col_names[j]] = cluster_avg[j]
-#             data['nodes'].append({
-#                 "id": str(i),
-#                 "size": len(cluster),
-#                 "avgs": cluster_avg_dict,
-#                 "vertices": cluster
-#                 })    
-#         else:
-#             if if_cli:
-#                 if "avgs" in graph['nodes'].keys():
-#                     data['nodes'].append({
-#                         "id": str(i),
-#                         "id_orignal": key,
-#                         "size": len(graph['nodes'][key]),
-#                         "vertices": cluster,
-#                         "categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
-#                         "avgs":graph['nodes'][key]["avgs"]
-#                         }),
-#                 else:
-#                     data['nodes'].append({
-#                         "id": str(i),
-#                         "id_orignal": key,
-#                         "size": len(graph['nodes'][key]),
-#                         "vertices": cluster,
-#                         "categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
-#                         }),
-#             else:
-#                 data['nodes'].append({
-#                     "id": str(i),
-#                     "size": len(graph['nodes'][key]),
-#                     "vertices": cluster
-#                     })
-#         i += 1
-
-#     with open(APP_STATIC+"/uploads/nodes_detail.json","w") as f:
-#         json.dump(nodes_detail, f)
-
-#     for link in graph.edges:
-#         node1, node2 = get_node_id(link[0]), get_node_id(link[1])
-#         data["links"].append({"source": name2id[node1], "target":name2id[node2]})
-#     return data
 
 def get_node_id(node):
     interval_idx = node.interval_index
@@ -335,36 +172,6 @@ def get_node_id(node):
     node_id = "node"+str(interval_idx)+str(cluster_idx)
     return node_id
 
-#Commented because not used in chemical mapper project
-# @app.route('/linear_regression', methods=['POST','GET'])
-# def linear_regression():
-#     json_data = json.loads(request.form.get('data'))
-#     selected_nodes = json_data['nodes']
-#     y_name = json_data['dep_var']
-#     X_names = json_data['indep_vars']
-#     print(y_name, X_names)
-#     with open(APP_STATIC+"/uploads/nodes_detail.json") as f:
-#         nodes_detail = json.load(f)
-#     data = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv")
-#     if len(selected_nodes) > 0:
-#         selected_rows = []
-#         for node in selected_nodes:
-#             selected_rows += nodes_detail[node]
-#         selected_rows = list(set(selected_rows))
-#         data = data.iloc[selected_rows, :]
-#         data.index = range(len(data))
-#     y = data.loc[:,y_name]
-#     X = data.loc[:,X_names]
-#     X2 = sm.add_constant(X)
-#     reg = sm.OLS(y, X2)
-#     print(y,X2)
-#     result = reg.fit()
-#     conf_int = np.array(result.conf_int())
-#     conf_int_new = []
-#     for i in range(conf_int.shape[0]):
-#         conf_int_new.append(list(conf_int[i,:]))
-#     print(result.summary())
-#     return jsonify(params=list(result.params), pvalues=list(result.pvalues), conf_int=conf_int_new, stderr=list(result.bse))
 
 @app.route('/pca', methods=['POST','GET'])
 def pca():
@@ -523,73 +330,67 @@ def compute_lens(f, data, mapper, filter_parameters=None):
     #     lens = np.array(data[f]).reshape(-1,1)
     return lens
 
+def graph_to_dict(g):
+    print("WORKING ON DICT")
+    d = {}
+    d['nodes'] = {}
+    d['edges'] = {}
+    for k in g['nodes']:
+        d['nodes'][k] = g['nodes'][k]
+    for k in g['links']:
+        d['edges'][k] = g['links'][k]
+    #for k in kwargs.keys():
+    #    d[k] = kwargs[k]
+    print("DONE")
+    return d
 
-def _parse_result(graph, lens_dict={}, data_array=[], if_cli=False):
-    print("parsing result")
-    if len(data_array)>0:
-        col_names = data_array.columns
-        data_array = np.array(data_array)
-    data = {"nodes": [], "links": []}
-    # nodes
-    node_keys = graph['nodes'].keys()
-    name2id = {}
-    i = 1
-    nodes_detail = {}
-    for key in node_keys:
-        name2id[key] = i
-        cluster = graph['nodes'][key]
-        nodes_detail[i] = cluster
-        cluster_avg_dict = {}
-        for lens in lens_dict:
-            cluster_data = lens_dict[lens][cluster]
-            cluster_avg = np.mean(cluster_data)
-            cluster_avg_dict[lens] = cluster_avg
-        if len(data_array)>0:
-            cluster_data = data_array[cluster]
-            cluster_avg = np.mean(cluster_data, axis=0)
-            for j in range(len(col_names)):
-                cluster_avg_dict[col_names[j]] = cluster_avg[j]
-            data['nodes'].append({
-                "id": str(i),
-                "size": len(graph['nodes'][key]),
-                "avgs": cluster_avg_dict,
-                "vertices": cluster
-                })
+def for_label_scaffold(filename,array,scaffold_col,label_col):
+    categorical = {"label":{},"scaffold":{}}
+    for i in array:
+        line = linecache.getline('./CLI_examples/processed_data.csv', i+2)
+        label = line.split(',')[label_col]
+        scaffold = line.split(',')[scaffold_col]
+        if label not in categorical["label"]:
+            categorical["label"][label] = 1
         else:
-            if if_cli:
-                if "avgs" in graph['nodes'][key]:
-                    data['nodes'].append({
-                        "id": str(i),
-                        "id_orignal": key,
-                        "size": len(graph['nodes'][key]),
-                        "vertices": cluster,
-                        "categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
-                        "avgs":graph['nodes'][key]["avgs"]
-                        }),
-                else:
-                    print("cc")
-                    data['nodes'].append({
-                        "id": str(i),
-                        "id_orignal": key,
-                        "size": len(graph['nodes'][key]),
-                        "vertices": cluster,
-                        "categorical_cols_summary":for_label_scaffold(APP_STATIC+'/uploads/processed_data.csv',cluster)
-                        }),
-            else:
-                data['nodes'].append({
-                    "id": str(i),
-                    "size": len(graph['nodes'][key]),
-                    "vertices": cluster
-                    })
-        i += 1
-    
-    with open(APP_STATIC+"/uploads/nodes_detail.json","w") as f:
-        json.dump(nodes_detail, f)
+            categorical["label"][label] = categorical["label"][label] + 1
+        
+        if scaffold not in categorical["scaffold"]:
+            categorical["scaffold"][scaffold] = 1
+        else:
+            categorical["scaffold"][scaffold] = categorical["scaffold"][scaffold] + 1   
+    return categorical
 
+def _parse_result(g, lens_dict={}, data_array=[], if_cli=False):
+    g = graph_to_dict(g)
+    scaffold_col = -2
+    struct_col = -1
+    label_col = -3
+    print("FOR VISUALIZATION") 
+    g["links"] = g["edges"]
+    del g["edges"]
+    data = {"nodes": [], "links": []}
+    node_keys = g['nodes'].keys()
+    i =1
+    name2id = {}
+    for key in node_keys:
+        cluster = g['nodes'][key]
+        print("NODE NUMBER: ",i)
+        name2id[key] = i
+        data['nodes'].append({
+        "id": str(i),
+        "id_orignal": key,
+        "size": len(g['nodes'][key]),
+        "vertices": cluster,
+        "avgs":{"MHFP6_avg":0,"MHFP6_rand_avg":0},
+        "categorical_cols_summary":for_label_scaffold('./CLI_examples/processed_data.csv',cluster,scaffold_col,label_col)
+                    })
+        i = i+1
+        
     # links
     links = set()
-    for link_from in graph['links'].keys():
-        for link_to in graph['links'][link_from]:
+    for link_from in g['links'].keys():
+        for link_to in g['links'][link_from]:
             from_id = name2id[link_from]
             to_id = name2id[link_to]
             left_id = min(from_id, to_id)
@@ -597,7 +398,16 @@ def _parse_result(graph, lens_dict={}, data_array=[], if_cli=False):
             links.add((left_id, right_id))
     for link in links:
         data['links'].append({"source": link[0], "target": link[1]})
-    return data
+        
+    connected_components = compute_cc(data)
+    to_dump = {'mapper':data,'col_keys':['MHFP6_avg','MHFP6_rand_avg'],'connected_components':connected_components,'categorical_cols':['label','scaffold']}
+    with open('./CLI_examples/final.json', 'w') as fp:
+            json.dump(to_dump, fp)
+    
+    l2.l2('CLI_examples/final.json')
+    anchor.anchor('CLI_examples/final.json')
+    print("COMPLETE")
+    
 
 def compute_cc(graph): 
     '''
@@ -648,22 +458,8 @@ def module_computing():
     data, cols = get_selected_data(selected_nodes)
     module_info = json_data['module_info']
     data_new = call_module_function(data, cols, module_info)
-    # data_new['kmeans_cluster'] = KMeans(n_clusters=4, random_state=0).fit(data_new).labels_
-    # data_new = data_new.to_json(orient='records')
-    # return jsonify(module_result=data_new)
     return data_new
-    # # kNN graph
-    # from pynndescent import NNDescent
-    # df = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv")
-    # activations = df.iloc[:, 0:512]
-    # k=5
-    # index = NNDescent(activations, n_neighbors=15, metric='euclidean')
-    # out = index.query(activations, k=k)
-    # dist = out[1]
-    # s_dist=np.sort(dist, axis=0)
-    # s_dist = list(s_dist[:,k-1].astype("str"))
-    # print(s_dist)
-    # return jsonify(s_dist=s_dist)
+  
 
 def call_module_function(data, cols, module_info):
     mod_name, func_name = module_info['function-name'].rsplit('.',1)
@@ -925,5 +721,194 @@ def reset():
         return jsonify(mapper_graph,original)
 
 
+#Commented because not used in chemical mapper project
+# @app.route('/enhanced_mapper_loader', methods=['POST','GET'])
+# def get_enhanced_graph():
+#     mapper_data = request.form.get('data')
+#     mapper_data = json.loads(mapper_data)
+#     selected_cols = mapper_data['cols']
+#     all_cols = mapper_data['all_cols'] # all numerical cols
+#     categorical_cols = mapper_data['categorical_cols']
+#     data = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv")
+#     data_categorical = data[categorical_cols]
+#     data = data[all_cols]
 
+#     config = mapper_data["config"]
+#     norm_type = config["norm_type"]
+#     clustering_alg = config["clustering_alg"]
+#     clustering_alg_params = config["clustering_alg_params"]
+#     filter_parameters = config
+#     enhanced_parameters = mapper_data["enhanced_config"]
 
+#     filter_function = config["filter"]
+#     if len(filter_function) == 1:
+#         interval = int(config["interval1"])
+#         overlap = float(config["overlap1"]) / 100
+#     elif len(filter_function) == 2:
+#         interval = [int(config["interval1"]), int(config["interval2"])]
+#         overlap = [float(config["overlap1"])/100, float(config["overlap2"])/100]
+
+#     if norm_type == "none":
+#         pass
+#     elif norm_type == "0-1": # axis=0, min-max norm for each column
+#         scaler = MinMaxScaler()
+#         data = scaler.fit_transform(data)
+#     else:
+#         data = sklearn.preprocessing.normalize(data, norm=norm_type, axis=0, copy=False, return_norm=False)
+#     data = pd.DataFrame(data, columns = all_cols)
+
+#     mapper = KeplerMapper()
+#     if len(selected_cols) == 1:
+#         data_new = np.array(data[selected_cols[0]]).reshape(-1,1)
+#     else:
+#         data_new = np.array(data[selected_cols])
+
+#     if len(filter_function) == 1:
+#         f = filter_function[0]
+#         if f in data.columns:
+#             lens = data[f]
+#         else:
+#             lens = compute_lens(f, data_new, mapper, filter_parameters)
+        
+#     elif len(filter_function) == 2:
+#         lens = []
+#         for f in filter_function:
+#             if f in data.columns:
+#                 lens_f = np.array(data[f]).reshape(-1,1)
+#             else:
+#                 lens_f = compute_lens(f, data_new, mapper, filter_parameters)
+#             lens.append(lens_f)
+#         lens = np.concatenate((lens[0], lens[1]), axis=1)
+
+#     if clustering_alg == "DBSCAN":
+#         clusterer = cluster.DBSCAN(eps=float(clustering_alg_params["eps"]), min_samples=int(clustering_alg_params["min_samples"]))
+#     elif clustering_alg == "Agglomerative Clustering":
+#         clusterer = cluster.AgglomerativeClustering(n_clusters=None, linkage=clustering_alg_params["linkage"], distance_threshold=float(clustering_alg_params["dist"]))
+#     elif clustering_alg == "Mean Shift":
+#         clusterer = cluster.MeanShift(bandwidth=float(clustering_alg_params["bandwidth"]))
+
+#     iterations = enhanced_parameters['max_iter']
+#     max_intervals = 100
+#     delta = enhanced_parameters['delta']
+#     BIC = enhanced_parameters['bic']
+#     method = enhanced_parameters['method'] # method can be: BFS, DFS, randomized
+
+#     print("iterations", iterations)
+#     print("delta", delta)
+#     print("method", method)
+
+#     cov = enhanced_Cover(interval, overlap)
+#     g_classic = generate_mapper_graph(data_new, lens, cov, clusterer, refit_cover = True)
+
+#     multipass_cover = mapper_xmeans_centroid(data_new, lens, enhanced_Cover(interval, overlap), clusterer, iterations, max_intervals, BIC=BIC, delta=delta, method=method)
+
+#     g_multipass = generate_mapper_graph(data_new, lens, multipass_cover, clusterer, refit_cover=False)
+#     mapper_result = _parse_enhanced_graph(g_multipass, data)
+#     connected_components = compute_cc(mapper_result)
+
+#     if len(categorical_cols) > 0:
+#         for node in mapper_result['nodes']:
+#             vertices = node['vertices']
+#             data_categorical_i = data_categorical.iloc[vertices]
+#             node['categorical_cols_summary'] = {}
+#             for col in categorical_cols:
+#                 node['categorical_cols_summary'][col] = data_categorical_i[col].value_counts().to_dict()
+#     print("classic",cov.intervals)
+#     print("xmeans",multipass_cover.intervals)
+#     print("THIS WORKS:")
+#     dic = {'mapper':mapper_result,'connected_components':connected_components,'categorical_cols':['Label','Scaffold'],'col_keys':all_cols}
+#     with open('./CLI_examples/final.json', 'w') as fp:
+#         json.dump(dic, fp)
+#     return jsonify(mapper=mapper_result, connected_components=connected_components, classic_cover=cov.intervals.tolist(), adaptive_cover=multipass_cover.intervals.tolist())
+
+# def _parse_enhanced_graph(graph, data_array=[], if_cli=False):
+#     if len(data_array)>0:
+#         col_names = data_array.columns
+#         data_array = np.array(data_array)
+#     data = {"nodes":[], "links":[]}
+
+#     nodes_detail = {}
+#     name2id = {}
+#     i = 1
+#     for node in graph.nodes:
+#         node_name = get_node_id(node)
+#         name2id[node_name] = i
+#         cluster = node.members.tolist()
+#         nodes_detail[i] = cluster
+#         if len(data_array)>0:
+#             cluster_data = data_array[cluster]
+#             cluster_avg = np.mean(cluster_data, axis=0)
+#             cluster_avg_dict = {}
+#             for j in range(len(col_names)):
+#                 cluster_avg_dict[col_names[j]] = cluster_avg[j]
+#             data['nodes'].append({
+#                 "id": str(i),
+#                 "size": len(cluster),
+#                 "avgs": cluster_avg_dict,
+#                 "vertices": cluster
+#                 })    
+#         else:
+#             if if_cli:
+#                 if "avgs" in graph['nodes'].keys():
+#                     data['nodes'].append({
+#                         "id": str(i),
+#                         "id_orignal": key,
+#                         "size": len(graph['nodes'][key]),
+#                         "vertices": cluster,
+#                         "categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
+#                         "avgs":graph['nodes'][key]["avgs"]
+#                         }),
+#                 else:
+#                     data['nodes'].append({
+#                         "id": str(i),
+#                         "id_orignal": key,
+#                         "size": len(graph['nodes'][key]),
+#                         "vertices": cluster,
+#                         "categorical_cols_summary": graph['nodes'][key]["categorical_cols_summary"],
+#                         }),
+#             else:
+#                 data['nodes'].append({
+#                     "id": str(i),
+#                     "size": len(graph['nodes'][key]),
+#                     "vertices": cluster
+#                     })
+#         i += 1
+
+#     with open(APP_STATIC+"/uploads/nodes_detail.json","w") as f:
+#         json.dump(nodes_detail, f)
+
+#     for link in graph.edges:
+#         node1, node2 = get_node_id(link[0]), get_node_id(link[1])
+#         data["links"].append({"source": name2id[node1], "target":name2id[node2]})
+#     return data
+
+#Commented because not used in chemical mapper project
+# @app.route('/linear_regression', methods=['POST','GET'])
+# def linear_regression():
+#     json_data = json.loads(request.form.get('data'))
+#     selected_nodes = json_data['nodes']
+#     y_name = json_data['dep_var']
+#     X_names = json_data['indep_vars']
+#     print(y_name, X_names)
+#     with open(APP_STATIC+"/uploads/nodes_detail.json") as f:
+#         nodes_detail = json.load(f)
+#     data = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv")
+#     if len(selected_nodes) > 0:
+#         selected_rows = []
+#         for node in selected_nodes:
+#             selected_rows += nodes_detail[node]
+#         selected_rows = list(set(selected_rows))
+#         data = data.iloc[selected_rows, :]
+#         data.index = range(len(data))
+#     y = data.loc[:,y_name]
+#     X = data.loc[:,X_names]
+#     X2 = sm.add_constant(X)
+#     reg = sm.OLS(y, X2)
+#     print(y,X2)
+#     result = reg.fit()
+#     conf_int = np.array(result.conf_int())
+#     conf_int_new = []
+#     for i in range(conf_int.shape[0]):
+#         conf_int_new.append(list(conf_int[i,:]))
+#     print(result.summary())
+#     return jsonify(params=list(result.params), pvalues=list(result.pvalues), conf_int=conf_int_new, stderr=list(result.bse))
