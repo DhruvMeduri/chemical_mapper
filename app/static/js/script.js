@@ -277,25 +277,7 @@ $("#import").click(function(){
 })
 d3.select("#files")
     .on("change",()=>{
-        // let file_name = $('#files')[0].files[0].name;
-        // console.log(file_name)
-        // $.ajax({
-        //     type: "POST",
-        //     url: "/data_process",
-        //     data: file_name,
-        //     dataType:'text',
-        //     success: function (response) {
-        //         response = JSON.parse(response);
-        //         that.side_bar = new DataLoader(response.columns, response.categorical_columns, response.other_columns);
-        //     },
-        //     error: function (error) {
-        //         console.log("error",error);
-        //         alert("Incorrect data format!");
-        //     }
-        // })
-        // d3.select(".columns-group")
-        //     .style("max-height","1000px")
-        //     .style("visibility", "visible");
+
         let files = $('#files')[0].files[0];
         let fileReader = new FileReader();
         fileReader.onload = function(fileLoadedEvent) {
@@ -334,78 +316,70 @@ d3.select("#mapper_loader")
                 that.regression = new Regression(that.side_bar.all_cols);
             })
         } else{
-            alert("Please import a dataset frist!");
-        } 
-    })
-
-d3.select("#enhanced_mapper_loader")
-    .on("click", ()=>{
-        if(that.side_bar.all_cols.length>0){
-            if(that.side_bar.config.filter.length>1){
-                alert("Only 1D enhanced mapper is implemented.")
-            } else{
-                that.get_mapper_parameters();
-                that.get_enhanced_mapper_parameters();
-                console.log(that.mapper_data)
-                $.post("/enhanced_mapper_loader",{
-                    data: JSON.stringify(that.mapper_data)
-                }, function(res){
-                    console.log(res);
-                    that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, that.side_bar.categorical_cols, that.side_bar.other_cols);
-                    that.regression = new Regression(that.side_bar.all_cols);
-                    //that.side_bar.draw_adaptive_cover(res.classic_cover, res.adaptive_cover);
-                })
-            }
-        } else{
             alert("Please import a dataset first!");
         } 
     })
 
-d3.select("#linear_regression")
-    .on("click", ()=>{
-        if(that.graph){
-            let selected_nodes = [...that.graph.selected_nodes];
-            // if(that.graph.selected_nodes.length===0){
-            //     selected_nodes = that.graph.nodes.map(d=>d.id);
-            // } 
-            // console.log(that.regression.dependent_var)
-            // console.log(that.regression.indep_vars_selected)
-            $.post("/linear_regression", {
-                data: JSON.stringify({"nodes":selected_nodes, "dep_var":that.regression.dependent_var, "indep_vars":that.regression.indep_vars_selected})
-            }, function(res){
-                console.log(res)
-                that.regression.draw_reg_result(res);
-            })
-        }
-    })
+//Commented because not used in chemical mapper project.
+// d3.select("#enhanced_mapper_loader")
+//     .on("click", ()=>{
+//         if(that.side_bar.all_cols.length>0){
+//             if(that.side_bar.config.filter.length>1){
+//                 alert("Only 1D enhanced mapper is implemented.")
+//             } else{
+//                 that.get_mapper_parameters();
+//                 that.get_enhanced_mapper_parameters();
+//                 console.log(that.mapper_data)
+//                 $.post("/enhanced_mapper_loader",{
+//                     data: JSON.stringify(that.mapper_data)
+//                 }, function(res){
+//                     console.log(res);
+//                     that.graph = new Graph(res.mapper, that.side_bar.all_cols, res.connected_components, that.side_bar.categorical_cols, that.side_bar.other_cols);
+//                     that.regression = new Regression(that.side_bar.all_cols);
+//                     //that.side_bar.draw_adaptive_cover(res.classic_cover, res.adaptive_cover);
+//                 })
+//             }
+//         } else{
+//             alert("Please import a dataset first!");
+//         } 
+//     })
+
+//Commented because not used in chemical mapper project.
+// d3.select("#linear_regression")
+//     .on("click", ()=>{
+//         if(that.graph){
+//             let selected_nodes = [...that.graph.selected_nodes];
+//             $.post("/linear_regression", {
+//                 data: JSON.stringify({"nodes":selected_nodes, "dep_var":that.regression.dependent_var, "indep_vars":that.regression.indep_vars_selected})
+//             }, function(res){
+//                 console.log(res)
+//                 that.regression.draw_reg_result(res);
+//             })
+//         }
+//     })
 
 d3.select("#pca")
     .on("click", ()=>{
-        if(that.graph){
-            let selected_nodes = [...that.graph.selected_nodes];
-            // if(that.graph.selected_nodes.length===0){
-            //     selected_nodes = that.graph.nodes.map(d=>d.id);
-            // } 
+        console.log("PCA  CHECK",this)
+            let selected_nodes = [...window.graph.selected_nodes];
+            console.log("PCA CHECK: ",selected_nodes)
             $.post("/pca", {
                 data: JSON.stringify({"nodes":selected_nodes})
             }, function(res){
-                that.pca = new PCA(that.side_bar.selected_cols, selected_nodes);
+                that.pca = new PCA(window.side_bar.selected_cols, selected_nodes);
                 that.pca.draw_PCA(JSON.parse(res.pca));
             })
-        }
+        //}
     })
 
 
 d3.select("#KNN")
     .on("click", ()=>{
         $.post("/knn", {
-            data: JSON.stringify({"min_samples":that.side_bar.config.clustering_alg_params.min_samples})
+            data: JSON.stringify({"min_samples":window.side_bar.config.clustering_alg_params.min_samples})
             //dataType: 'text'
         }, function(res){
-            console.log("UUU: ",res.s_dist)
-            draw_KNN(res.s_dist)
-            console.log("CCC: ",that.side_bar.config.clustering_alg_params.eps)
-            
+            draw_KNN(res.s_dist)  
         })
     })
 
@@ -554,30 +528,32 @@ function get_mapper_parameters(){
     console.log("DEBUG: ",that.side_bar.config)
 }
 
-function get_enhanced_mapper_parameters(){
-    that.mapper_data.enhanced_config = {};
-    let ic_dropdown = document.getElementById("information_criterion_selection");
-    let ic_type = ic_dropdown.options[ic_dropdown.selectedIndex].text;
-    if(ic_type === "BIC"){
-        that.mapper_data.enhanced_config.bic = true;
-    } else {
-        that.mapper_data.enhanced_config.bic = false;
-    }
-    let max_iter = 5;
-    let delta = 0;
 
-    if($('#converg-iter').prop("checked")===true){
-        console.log("-----checked",d3.select("#converg-iter-value").property("value"))
-        max_iter = parseInt(d3.select("#converg-iter-value").property("value"));
-    }
-    if($('#converg-delta').prop("checked")===true){
-        delta = parseFloat(d3.select("#converg-delta-value").property("value"));
-    }
+//Commented because not used in chemical mapper project.
+// function get_enhanced_mapper_parameters(){
+//     that.mapper_data.enhanced_config = {};
+//     let ic_dropdown = document.getElementById("information_criterion_selection");
+//     let ic_type = ic_dropdown.options[ic_dropdown.selectedIndex].text;
+//     if(ic_type === "BIC"){
+//         that.mapper_data.enhanced_config.bic = true;
+//     } else {
+//         that.mapper_data.enhanced_config.bic = false;
+//     }
+//     let max_iter = 5;
+//     let delta = 0;
 
-    that.mapper_data.enhanced_config.max_iter = max_iter;
-    that.mapper_data.enhanced_config.delta = delta;
+//     if($('#converg-iter').prop("checked")===true){
+//         console.log("-----checked",d3.select("#converg-iter-value").property("value"))
+//         max_iter = parseInt(d3.select("#converg-iter-value").property("value"));
+//     }
+//     if($('#converg-delta').prop("checked")===true){
+//         delta = parseFloat(d3.select("#converg-delta-value").property("value"));
+//     }
 
-    let sa_dropdown = document.getElementById("search_alg_selection");
-    let sa_type = sa_dropdown.options[sa_dropdown.selectedIndex].text;
-    that.mapper_data.enhanced_config.method = sa_type;
-}
+//     that.mapper_data.enhanced_config.max_iter = max_iter;
+//     that.mapper_data.enhanced_config.delta = delta;
+
+//     let sa_dropdown = document.getElementById("search_alg_selection");
+//     let sa_type = sa_dropdown.options[sa_dropdown.selectedIndex].text;
+//     that.mapper_data.enhanced_config.method = sa_type;
+// }

@@ -102,20 +102,8 @@ function draw_KNN(points)
      
     final_path = line_generator(data)
 
-    //let cg = d3.select("#path_group").selectAll("circle").data(data);
-    //cg.exit().remove();
-    //cg = cg.enter().append("circle").merge(cg)
-    //.attr("cx", d=>xScale(d.x))
-    //.attr("cy", d=>yScale(d.y))
-    //.attr("r", 2)
-
     d3.select("#path_group").selectAll("path").remove()
     d3.select("#path_group").append("path").datum(data).attr("d",line_generator).attr("fill","none").attr("stroke","black").attr("stroke-width",1.5);
-
-    //let cg = d3.select("#path_group")
-    //.append("path")
-    //.attr("d",final_path);
-        
 
     // x-axis
     d3.select("#axis_group").append("g") 

@@ -17,12 +17,13 @@ import pandas as pd
 def draw_chem(vertices,struct_col,scaffold_col):
     images = {"success":1}
     count = 0
+    print("DEBUG: ",vertices)
     for i in range(len(vertices)):
         vertices[i] = int(vertices[i])
         line = linecache.getline("./CLI_examples/processed_data.csv", vertices[i]+2)
         structure = line.split(',')[struct_col]
         #scaffold = line.split(',')[scaffold_col]
-        #print("CHECK: ",structure)
+        print("CHECK: ",structure)
         mol = Chem.MolFromSmiles(structure)
         #scaffold = Chem.MolFromSmiles(scaffold)
         scaffold = MurckoScaffold.GetScaffoldForMol(mol)

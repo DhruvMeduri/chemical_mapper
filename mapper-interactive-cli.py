@@ -352,17 +352,14 @@ if __name__ == '__main__':
         for key in node_keys:
             cluster = g['nodes'][key]
             print("NODE NUMBER: ",i)
-            #mhf = MHFP6(cluster,1500,struct_col)
             name2id[key] = i
             data['nodes'].append({
             "id": str(i),
             "id_orignal": key,
             "size": len(g['nodes'][key]),
             "vertices": cluster,
-            #"avgs":{"MHFP6_avg":mean_property(cluster,-2,output_dir),"MHFP6_rand_avg":0},
             "avgs":{"MHFP6_avg":0,"MHFP6_rand_avg":0},
             "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster,scaffold_col,label_col)
-            #"categorical_cols_summary":{}
                         })
             i = i+1
         

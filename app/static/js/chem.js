@@ -64,7 +64,6 @@ function swap_decomposition(cur_file)
         success: function (response) {
             res = JSON.parse(response);
             d3.select('#graphSVG').selectAll('*').remove();
-            //console.log(getEventListeners(document));
             that.graph = new Graph(res[0].mapper, res[0].col_keys, res[0].connected_components, res[0].categorical_cols, that.side_bar.other_cols,res[1]);
         },
         error: function (error) {
@@ -84,8 +83,9 @@ function reset()
         dataType:'text',
         success: function (response) {
             res = JSON.parse(response);
+            console.log(res)
             d3.select('#graphSVG').selectAll('*').remove();
-            that.graph = new Graph(res[0].mapper, res[0].col_keys, res[0].connected_components, res[0].categorical_cols, that.side_bar.other_cols,res[1]);
+            that.graph = new Graph(res[0].mapper, res[0].col_keys, res[0].connected_components, res[0].categorical_cols, [],res[1]);
         },
         error: function (error) {
             console.log("error",error);

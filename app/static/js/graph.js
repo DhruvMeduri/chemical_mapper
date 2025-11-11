@@ -47,24 +47,7 @@ class Graph{
         "Rainbow":["red","orange","yellow","green","blue","indigo","violet"],
         "Yellow, Blue":["yellow", "blue"], 
         "Green, Blue":["green", "blue"]};
-        this.colorScale = d3.scaleLinear();
-
-        // this.COLORMAPS = [
-        //     { 'label': '- None -', 'scheme': null },
-        //     // { 'label': 'Rainbow', 'scheme': 'interpolateRainbow' },
-        //     { 'label': 'Yellow, Red', 'scheme': 'interpolateYlOrRd' },
-        //     // { 'label': 'Yellow, Blue', 'scheme': 'interpolateYlOrBr' },
-        //     // { 'label': 'Yellow, Green', 'scheme': 'interpolateYlGn' },
-        //     // { 'label': 'Yellow, Green, Blue', 'scheme': 'interpolateYlGnBu' },
-        //     { 'label': 'Purple, Red', 'scheme': 'interpolatePuRd' },
-        //     // { 'label': 'Purple, Blue', 'scheme': 'interpolatePuBu' },
-        //     // { 'label': 'Purple, Blue, Green', 'scheme': 'interpolatePuBuGn' },
-        //     { 'label': 'Green, Blue', 'scheme': 'interpolateGnBu' },
-        //     // { 'label': 'Red', 'scheme': 'interpolateOrRd' },
-        //     // { 'label': 'Red, Blue', 'scheme': 'interpolateRdPu' },
-        //     // { 'label': 'Blue', 'scheme': 'interpolateBlues' },
-        //     // { 'label': 'Blue, Purple', 'scheme': 'interpolateBuPu' }
-        //   ]      
+        this.colorScale = d3.scaleLinear();     
         
         this.label_column = "row index";
 
@@ -218,11 +201,7 @@ class Graph{
 
         // axis
         let tickValues = [axisDomain[0], d3.mean(axisDomain), axisDomain[axisDomain.length-1]];
-        //let temp_range = [];
-        //for(let i = 0 ;i<axisDomain.length;i++)
-        //{
-        //    temp_range.push(axisMargin + i*(width-axisMargin*3 - axisMargin));
-        //}
+
 
         let axisScale = d3.scaleLinear().domain([axisDomain[0],axisDomain[axisDomain.length-1]]).range([axisMargin,width-axisMargin*3 - axisMargin]);
         let axis = d3.axisBottom(axisScale).tickValues(tickValues);
@@ -348,28 +327,7 @@ class Graph{
     }
 
     get_scale(){
-        // let hist_scale = {};
-        // let col_ranges = {};
-        // for(let i=0; i<this.col_keys.length; i++){
-        //     col_ranges[this.col_keys[i]] = {"max":-Infinity, "min":Infinity};
-        // }
-        // this.nodes.forEach(n=>{
-        //     for(let col_key in n.avgs){
-        //         if(n.avgs[col_key]<col_ranges[col_key].min){
-        //             col_ranges[col_key].min = n.avgs[col_key];
-        //         }
-        //         if(n.avgs[col_key]>col_ranges[col_key].max){
-        //             col_ranges[col_key].max = n.avgs[col_key];
-        //         }
-        //     }
-        // })
-        // for(let i=0; i<this.col_keys.length; i++){
-        //     let col_key = this.col_keys[i]
-        //     hist_scale[col_key] = d3.scaleLinear()
-        //         .domain([col_ranges[col_key].min, col_ranges[col_key].max])
-        //         .range([this.hist_margin.left*6, this.hist_width-this.hist_margin.left*10]);
-        // }
-        // return hist_scale;
+
         let max_val = -Infinity;
         let min_val = Infinity;
         this.nodes.forEach(n=>{
@@ -436,8 +394,7 @@ class Graph{
             })
     }
 
-    select_node(){
-        
+    select_node(){  
         this.selected_nodes = [];
         this.if_select_node = true;
         d3.select("#select-node").classed("selected", true);
@@ -450,8 +407,7 @@ class Graph{
         this.if_select_chem = false
         this.if_select_geometry = false
         this.if_select_component=false
-        d3.select('#chemicalSVG').selectAll('*').remove();
-        
+        d3.select('#chemicalSVG').selectAll('*').remove();    
     }
 
     select_cluster(){
@@ -511,7 +467,6 @@ class Graph{
             d3.select('#chemicalSVG').selectAll('*').remove();
         }
         else{
-
             console.log("CHECK_RESET");
             reset();
         }
@@ -753,7 +708,6 @@ class Graph{
 
             this.nodes = this.const_nodes;
             this.links = this.const_links;
-
             //this.axis_group.remove();
             let simulation = d3.forceSimulation(this.nodes)
             .force("link", d3.forceLink(this.links).id(function(d) { return d.id; }))
@@ -1033,20 +987,10 @@ class Graph{
         function dragged(d) {
             d.fx = d3.event.x;
             d.fy = d3.event.y;
-            //d.y = d3.mouse(this.parentNode)[1];
-            //d3.select(`#group${d.id}`).attr("transform", `translate(${d.x}, ${d.y})`)
-            //d.links.source.forEach(eid=>{
-            //    d3.select(`#${eid}`).attr("x1", d.x).attr("y1", d.y);
-            //});
-            //d.links.target.forEach(eid=>{
-            //    d3.select(`#${eid}`).attr("x2", d.x).attr("y2", d.y);
-            //});
+
         }
     
         function dragended(d) {
-            //if (!d3.event.active) {simulation.alphaTarget(0);
-            //d.fx = null;
-           // d.fy = null;}
             d3.select(`#group${d.id}`).attr("transform", `translate(${d.x}, ${d.y})`)
             d.links.source.forEach(eid=>{
                 d3.select(`#${eid}`).attr("x1", d.x).attr("y1", d.y);
@@ -1186,8 +1130,6 @@ class Graph{
                                 d3.select('#link'+temp1.toString()+'_'+temp2.toString()).style("visibility","visible");
                             }
                         }
-                            
-                            //cluster.forEach(node2=> d3.select('#link'+ node1.toString()+'_'+node2.toString()).style("visibility","visible"))
                     }
 
                     
@@ -1327,7 +1269,6 @@ class Graph{
         function zoom_actions() {
             that.graphSvg_g.attr("transform", d3.event.transform);
         }
-
         simulation.restart();
     }
 
@@ -1335,13 +1276,9 @@ class Graph{
         let that = this;
         this.nodes = this.const_nodes;
             this.links = this.const_links;
-            //this.axis_group.remove();
-  
-            // Setting up the D3 simulation
+    
             let simulation = d3.forceSimulation(this.nodes)
-            //.force("link", d3.forceLink(this.links).id(function(d) { return d.id; }))
             .force("charge", d3.forceManyBody().strength(-6)) // Default charge force
-            //.force("center", d3.forceCenter(this.width / 2, this.height / 2)) // Default center force
             .stop();
  
             this.nodes.forEach(node=>{
@@ -1406,7 +1343,7 @@ class Graph{
                     if(this.selected_nodes.length === 0){
                         this.highlight_selectable(d.id);
                     }
-                    else { // this.selected_nodes.length > 0
+                    else { 
                         let path = this.dijkstra(this.path_start_id);
                         this.highlight_path(path, this.path_start_id, d.id);
                     }
@@ -1538,7 +1475,6 @@ class Graph{
                                 this.draw_hist();
                             }
                             console.log(this.selected_nodes)
-                            //this.text_cluster_details(this.selected_nodes, this.label_column, this.labels);
                         }});
                 
                 
@@ -1569,11 +1505,7 @@ class Graph{
                     simulation
                         .nodes(this.nodes)
                             .on("tick", ticked);
-                
-                    //simulation.force("link")
-                    //    .links(this.links);
-                
-
+            
                     that.k_clusters.forEach(d => {
                         d["x"] = scale_x(d["x"])
                         d["y"] = scale_y(d["y"])
@@ -1590,7 +1522,6 @@ class Graph{
 
 
                     function ticked() {
-        
                         let radius = 8;
                         ng
                             .attr("transform", function (d) {
