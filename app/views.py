@@ -34,9 +34,9 @@ from scipy.spatial import distance
 from sklearn.cluster import KMeans
 import importlib
 # from .enhanced_mapper.cover import Cover, UniformCover
-from .enhanced_mapper.cover import Cover as enhanced_Cover
-from .enhanced_mapper.mapper import generate_mapper_graph
-from .enhanced_mapper.AdaptiveCover import BIC_Cover_Centroid, construct_cover_from_xmeans, mapper_xmeans_centroid
+# from .enhanced_mapper.cover import Cover as enhanced_Cover
+# from .enhanced_mapper.mapper import generate_mapper_graph
+# from .enhanced_mapper.AdaptiveCover import BIC_Cover_Centroid, construct_cover_from_xmeans, mapper_xmeans_centroid
 from app import draw_structure
 
 
@@ -181,12 +181,12 @@ def pca():
     '''
     selected_nodes = json.loads(request.form.get('data'))['nodes']
     print(selected_nodes)
-    data = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv")
-    with open(APP_STATIC+"/uploads/cols_info.json") as f:
+    data = pd.read_csv("CLI_examples/processed_data.csv")
+    with open(APP_STATIC+"./CLI_examples/cols_info.json") as f:
         cols_dict = json.load(f)
     cols = cols_dict['cols_numerical']
     print(cols)
-    with open(APP_STATIC+"/uploads/nodes_detail.json") as f:
+    with open(APP_STATIC+"./CLI_examples/nodes_detail.json") as f:
         nodes_detail = json.load(f)
     if len(selected_nodes) > 0:
         selected_rows = []
@@ -428,11 +428,11 @@ def compute_cc(graph):
     return cc_list
 
 def get_selected_data(selected_nodes):
-    data = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv")
-    with open(APP_STATIC+"/uploads/cols_info.json") as f:
+    data = pd.read_csv("./CLI_examples/processed_data.csv")
+    with open("./CLI_examples/cols_info.json") as f:
         cols_dict = json.load(f)
     cols = cols_dict['cols_numerical']
-    with open(APP_STATIC+"/uploads/nodes_detail.json") as f:
+    with open("./CLI_examples/nodes_detail.json") as f:
         nodes_detail = json.load(f)
     if len(selected_nodes) > 0:
         selected_rows = []

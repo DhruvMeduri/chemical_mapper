@@ -358,7 +358,7 @@ if __name__ == '__main__':
             "id_orignal": key,
             "size": len(g['nodes'][key]),
             "vertices": cluster,
-            "avgs":{"MHFP6_avg":0,"MHFP6_rand_avg":0},
+            "avgs":{},
             "categorical_cols_summary":for_label_scaffold(output_dir+'/processed_data.csv',cluster,scaffold_col,label_col)
                         })
             i = i+1
