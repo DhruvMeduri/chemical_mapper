@@ -217,9 +217,6 @@ def normalize_data(X, norm_type):
     return X_prime
 
 
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Mapper Interactive Command Line Tool. \nSee CLI_README.md for details.')
@@ -327,16 +324,16 @@ if __name__ == '__main__':
         meta['MeanShift_bandwidth'] = 'None' if bandwidth is None else bandwidth
         clusterer = MeanShift(bandwidth=args.bandwidth)
 
-    with open(join(output_dir, 'metadata.json'), 'w+') as fp:
-        json.dump(meta, fp)
+    # with open(join(output_dir, 'metadata.json'), 'w+') as fp:
+    #     json.dump(meta, fp)
     # Picking the right scaffold column
     col_names = linecache.getline(output_dir+'/processed_data.csv', 1)
-    check = col_names.split(',')[-2]
+    col_names = col_names.split(',')
 
-    scaffold_col = -2
-    struct_col = -1
-    label_col = -3
-
+    scaffold_col = col_names.index('Scaffold')
+    struct_col = col_names.index('Structure\n')
+    label_col = col_names.index('Label')
+    
     for overlap, interval in tqdm(itertools.product(overlaps, intervals)):
 
         g = graph_to_dict(mapper_wrapper(
@@ -376,7 +373,7 @@ if __name__ == '__main__':
         data['links'].append({"source": link[0], "target": link[1]})
         
     connected_components = compute_cc(data)
-    to_dump = {'mapper':data,'col_keys':['MHFP6_avg','MHFP6_rand_avg'],'connected_components':connected_components,'categorical_cols':['label','scaffold']}
+    to_dump = {'mapper':data,'col_keys':['l2_norm'],'connected_components':connected_components,'categorical_cols':['label','scaffold']}
     with open(output_dir+'/final.json', 'w') as fp:
             json.dump(to_dump, fp)
     l2.l2(output_dir+'/final.json')

@@ -552,7 +552,10 @@ class Graph{
             let hist_svg = d3.select("#workspace-histogram").select(".block_body-inner").select("#div"+i).append("svg")
                 .attr("width", this.hist_width)
                 .attr("height", this.hist_height);
-            let avgs = d3.entries(node.avgs);
+            
+            let avgs = d3.entries(node.avgs)
+                .filter(d => this.col_keys.includes(d.key));
+     
             for(let j=0; j<avgs.length; j++){
                 hist_svg.append("text")
                     .classed("hist_value", true)

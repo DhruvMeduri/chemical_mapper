@@ -106,8 +106,8 @@ def process_text_data():
     cols_categorical = [cols[idx] for idx in cols_categorical_idx]
     cols_others = [cols[idx] for idx in cols_others_idx]
     cols_dict = {'cols_numerical':cols_numerical, 'cols_categorical':cols_categorical, 'cols_others':cols_others}
-    with open("./CLI_examples/cols_info.json", 'w') as f:
-        f.write(json.dumps(cols_dict, indent=4))
+    # with open("./CLI_examples/cols_info.json", 'w') as f:
+    #     f.write(json.dumps(cols_dict, indent=4))
     return jsonify(columns=cols_numerical, categorical_columns=cols_categorical, other_columns=cols_others)
 
 
@@ -181,22 +181,18 @@ def pca():
     '''
     selected_nodes = json.loads(request.form.get('data'))['nodes']
     print(selected_nodes)
-    data = pd.read_csv("CLI_examples/processed_data.csv")
-    with open(APP_STATIC+"./CLI_examples/cols_info.json") as f:
-        cols_dict = json.load(f)
-    cols = cols_dict['cols_numerical']
-    print(cols)
-    with open(APP_STATIC+"./CLI_examples/nodes_detail.json") as f:
-        nodes_detail = json.load(f)
+    data = pd.read_csv("CLI_examples/wrangled_data.csv")
+    with open("./CLI_examples/final.json") as f:
+        mapper = json.load(f)
     if len(selected_nodes) > 0:
         selected_rows = []
         for node in selected_nodes:
-            selected_rows += nodes_detail[node]
+            selected_rows += mapper['mapper']['nodes'][int(node)]['vertices']
         selected_rows = list(set(selected_rows))
         data = data.iloc[selected_rows, :]
         data.index = range(len(data))
     pca = PCA(n_components=2)
-    data_new = pca.fit_transform(data.loc[:,cols])
+    data_new = pca.fit_transform(data)
     data_new = pd.DataFrame(data_new)
     data_new.columns = ['pc1', 'pc2']
     print(data.shape)
@@ -264,9 +260,13 @@ def run_mapper(data_array, col_names, interval, overlap, clustering_alg, cluster
 def _call_kmapper(data, col_names, interval, overlap, clustering_alg, clustering_alg_params, filter_function, filter_parameters=None):
     mapper = KeplerMapper()
     if len(col_names) == 1:
-        data_new = np.array(data[col_names[0]]).reshape(-1,1)
+        data_new = data[col_names[0]]
+        data_new.to_csv("./CLI_examples/wrangled_data.csv", index=False) 
+        data_new = np.array(data_new).reshape(-1,1)
     else:
-        data_new = np.array(data[col_names])
+        data_new = data[col_names]
+        data_new.to_csv("./CLI_examples/wrangled_data.csv", index=False) 
+        data_new = np.array(data_new)
 
     lens_dict = {}
     if len(filter_function) == 1:
@@ -382,7 +382,7 @@ def _parse_result(g, lens_dict={}, data_array=[], if_cli=False):
         "id_orignal": key,
         "size": len(g['nodes'][key]),
         "vertices": cluster,
-        "avgs":{"MHFP6_avg":0,"MHFP6_rand_avg":0},
+        "avgs":{},
         "categorical_cols_summary":for_label_scaffold('./CLI_examples/processed_data.csv',cluster,scaffold_col,label_col)
                     })
         i = i+1
@@ -400,7 +400,7 @@ def _parse_result(g, lens_dict={}, data_array=[], if_cli=False):
         data['links'].append({"source": link[0], "target": link[1]})
         
     connected_components = compute_cc(data)
-    to_dump = {'mapper':data,'col_keys':['MHFP6_avg','MHFP6_rand_avg'],'connected_components':connected_components,'categorical_cols':['label','scaffold']}
+    to_dump = {'mapper':data,'col_keys':['l2_norm'],'connected_components':connected_components,'categorical_cols':['label','scaffold']}
     with open('./CLI_examples/final.json', 'w') as fp:
             json.dump(to_dump, fp)
     
@@ -599,7 +599,7 @@ def for_KNN():
     min_samples = json.loads(request.form.get('data'))['min_samples']
     min_samples = int(min_samples)
     from pynndescent import NNDescent
-    df = pd.read_csv(APP_STATIC+"/uploads/processed_data.csv")
+    df = pd.read_csv("./CLI_examples/wrangled_data.csv")
     activations = df.iloc[:, 0:31]
     k = min_samples
     index = NNDescent(activations, metric='euclidean')
